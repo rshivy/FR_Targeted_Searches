@@ -8,6 +8,7 @@
 #SBATCH --mem-per-cpu=10G
 
 module load miniconda
-conda activate # name of your conda environment
+conda activate simple_test # name of your conda environment
 
+export PYTHONPATH=$(pwd):$PATH
 python scripts/simple_targeted_search.py

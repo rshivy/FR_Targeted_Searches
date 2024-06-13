@@ -19,7 +19,7 @@ outdir = 'data/chains/ng15_v1p1/ZTF18abxxohm'  # set this to wherever you want t
 # Or you can copy over the pickle file if you want
 datapath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 noisedict_path = 'noise_dicts/15yr_wn_dict.json'
-psrdists_path = 'pulsar_distances/pulsar_distances_15yr.pkl'
+psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 prior_path = 'priors/ZTF18abxxohm_priors.json'
 
 Niter = 500_000
