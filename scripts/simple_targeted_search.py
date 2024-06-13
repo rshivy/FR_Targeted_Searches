@@ -136,9 +136,6 @@ jp = JumpProposal(pta)
 print('Adding red noise prior draws...')
 sampler.addProposalToCycle(jp.draw_from_red_prior, 30)
 
-print('Adding dm gp prior draws...')
-sampler.addProposalToCycle(jp.draw_from_dm_gp_prior, 10)
-
 # Same thing as the regular JumpProposal object but with methods for continuous wave parameters
 jpCW = Dists.JumpProposalCW(pta,
                             fgw=10 ** priors['log10_freq'],
