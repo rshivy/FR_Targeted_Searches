@@ -12,15 +12,15 @@ from enterprise_extensions.sampler import save_runtime_info
 human = 'Forrest H'  # <-- your name here
 source_name = 'ZTF18abxxohm'
 
-outdir = './data/chains/ng15_v1p1/ZTF18abxxohm'  # set this to wherever you want the output to go
+outdir = 'data/chains/ng15_v1p1/ZTF18abxxohm'  # set this to wherever you want the output to go
 
 # These are all input sources
 # You should have access to my project directory, so you can leave this path as-is
 # Or you can copy over the pickle file if you want
 datapath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
-noisedict_path = '../noise_dicts/15yr_wn_dict.json'
-psrdists_path = '../pulsar_distances/pulsar_distances_15yr.pkl'
-prior_path = '../priors/ZTF18abxxohm_priors.json'
+noisedict_path = 'noise_dicts/15yr_wn_dict.json'
+psrdists_path = 'pulsar_distances/pulsar_distances_15yr.pkl'
+prior_path = 'priors/ZTF18abxxohm_priors.json'
 
 Niter = 500_000
 
@@ -125,9 +125,11 @@ psr_dist = {}
 for p in psrs: # And this picks out the distances for the pulsars we're actually using
     psr_dist[p.name] = np.array(np.array(dists_file[p.name][:2]))
 
-# This creates jump proposals
-# I believe it defines each way the MCMC could move at a given step
-# Unsure about the details
+# This creates a JumpProsals object for our PTA.
+# The next 25ish lines call a method of this object to get a particular jump proposal
+# in the format excepted by the sampler object.
+# These define how the MCMC can update each parameter at each step
+# I don't fully understand why each of these is the way it is.
 jp = JumpProposal(pta)
 
 # noise prior draws
@@ -137,6 +139,7 @@ sampler.addProposalToCycle(jp.draw_from_red_prior, 30)
 print('Adding dm gp prior draws...')
 sampler.addProposalToCycle(jp.draw_from_dm_gp_prior, 10)
 
+# Same thing as the regular JumpProposal object but with methods for continuous wave parameters
 jpCW = Dists.JumpProposalCW(pta,
                             fgw=10 ** priors['log10_freq'],
                             psr_dist=psr_dist)
@@ -144,10 +147,6 @@ jpCW = Dists.JumpProposalCW(pta,
 # pick a cw param & jump
 print('Adding CW prior draws...')
 sampler.addProposalToCycle(jp.draw_from_cw_prior, 20)
-
-# draw from uniform h
-# sampler.addProposalToCycle(jp.draw_from_cw_log_uniform_distribution,
-#                           10)
 
 # draw from Mc
 print('Adding Chirp mass prior draws...')
