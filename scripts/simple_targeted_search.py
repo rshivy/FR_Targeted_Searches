@@ -43,7 +43,7 @@ outdir = f'data/chains/ng15_v1p1/target_{target_ind}'  # set this to wherever yo
 datapath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 noisedict_path = 'noise_dicts/15yr_wn_dict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
-prior_path = f'priors/{source_file_name}'
+prior_path = f'Target_Priors/{source_file_name}'
 
 Niter = 500_000
 
