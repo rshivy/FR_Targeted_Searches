@@ -48,8 +48,10 @@ prior_path = f'Target_Priors/{source_file_name}'
 
 Niter = 500_000
 
-if not os.path.isdir(outdir):  # This makes the output directory if it doesn't already exist
+try:  # This makes the output directory if it doesn't already exist
     os.makedirs(outdir)
+except FileExistsError:
+    print('Directory already exists')
 
 # This checks if the output file already exists (i.e. this script has already been run).
 # This lets you restart if the script was interrupted previously,
