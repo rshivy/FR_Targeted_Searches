@@ -8,6 +8,7 @@
 #SBATCH --mem=10G
 
 module load miniconda
+module load OpenMPI
 conda activate targeted # name of your conda environment
 
 export PYTHONPATH=$(pwd):$PATH
