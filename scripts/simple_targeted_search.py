@@ -31,7 +31,7 @@ parser.add_argument('-p',
 args = parser.parse_args()
 
 target_ind = args.target.zfill(3)
-with open('Target_Priors/{target_index}.json', 'r') as f:
+with open('Target_Priors/target_index.json', 'r') as f:
     source_name = json.load(f)[target_ind]
 
 outdir = f'data/chains/ng15_v1p1/target_{target_ind}'  # set this to wherever you want the output to go
