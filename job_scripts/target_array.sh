@@ -1,5 +1,9 @@
 #!/usr/bin/env bash
+<<<<<<< HEAD
 #SBATCH --job-name=targeted001
+=======
+#SBATCH --job-name=tarr
+>>>>>>> ba323d8 (job array support)
 #SBATCH --time=10:00:00
 #SBATCH --partition=scavenge
 #SBATCH --array=2-11
