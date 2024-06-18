@@ -25,6 +25,7 @@ parser.add_argument('-t',
                     action='store')
 parser.add_argument('-p',
                     '--pulsars',
+                    default=None,
                     help='Number of pulsars to use, for quicker testing',
                     action='store')
 args = parser.parse_args()
@@ -70,7 +71,8 @@ else:
 with open(datapath, 'rb') as f:
     psrs = pickle.load(f)
 
-psrs = psrs[:args.pulsars]
+if args.pulsars is not None:
+    psrs = psrs[:args.pulsars]
 
 # This loads the priors for the following parameters
 #     "RA": "19h30m25.294s",               <-- coordinates of the source
