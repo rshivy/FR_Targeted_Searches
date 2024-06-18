@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 #SBATCH --job-name=tarr
-#SBATCH --time=10:00:00
+#SBATCH --time=1-00:00:00
 #SBATCH --partition=scavenge
-#SBATCH --array=2-11
+#SBATCH --array=12-36
 #SBATCH --output=logs/targeted/%a.txt
 #SBATCH --error=logs/error/targeted/%a.txt
-#SBATCH --cpus-per-task=10
+#SBATCH --cpus-per-task=4
 #SBATCH --mem=10G
 
 module load miniconda

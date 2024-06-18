@@ -199,8 +199,8 @@ with open(outdir + '/model_params.json', 'w') as fout:
     json.dump(pta.param_names,
               fout,
               sort_keys=True,
-              indent=4,
-              separators=(',', ': '))
+              indent=4,                # Makes it print prettier
+              separators=(',', ': '))  # This is default
 
 # This does the actual sampling
 sampler.sample(x0,              # Initial samples
