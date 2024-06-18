@@ -32,7 +32,8 @@ args = parser.parse_args()
 
 target_ind = args.target.zfill(3)
 with open('Target_Priors/target_index.json', 'r') as f:
-    source_name = json.load(f)[target_ind]
+    source_file_name = json.load(f)[target_ind]
+source_name = source_file_name[:-5]
 
 outdir = f'data/chains/ng15_v1p1/target_{target_ind}'  # set this to wherever you want the output to go
 
@@ -42,7 +43,7 @@ outdir = f'data/chains/ng15_v1p1/target_{target_ind}'  # set this to wherever yo
 datapath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 noisedict_path = 'noise_dicts/15yr_wn_dict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
-prior_path = f'priors/{source_name}.json'
+prior_path = f'priors/{source_file_name}'
 
 Niter = 500_000
 
