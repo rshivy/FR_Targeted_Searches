@@ -34,6 +34,7 @@ target_ind = args.target.zfill(3)
 with open('Target_Priors/target_index.json', 'r') as f:
     source_file_name = json.load(f)[target_ind]
 source_name = source_file_name[:-5]
+print(f'Target is {source_name}')
 
 outdir = f'data/chains/ng15_v1p1/target_{target_ind}'  # set this to wherever you want the output to go
 
