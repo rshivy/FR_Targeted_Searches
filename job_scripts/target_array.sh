@@ -7,7 +7,7 @@
 #SBATCH --error=logs/error/targeted/%a.txt
 #SBATCH --ntasks=4
 #SBATCH --cpus-per-task=1
-#SBATCH --mem=10G
+#SBATCH --mem-per-cpu=10G
 #SBATCH --mail-type=END
 #SBATCH --mail-user=forrest.hutchison@yale.edu
 

@@ -9,7 +9,7 @@ if len(sys.argv) > 1:
 else:
     maxind = 111
 
-f = open('joblist.txt', 'w')
+f = open('job_scripts/joblist.txt', 'w')
 commands = ['module load miniconda OpenMPI;',
             'conda activate targeted;',
             'export PYTHONPATH=$(pwd):$PATH;',
