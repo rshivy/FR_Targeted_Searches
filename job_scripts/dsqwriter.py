@@ -16,5 +16,5 @@ commands = ['module load miniconda OpenMPI;',
             'mpirun -n 4 python scripts/simple_targeted_search.py -t']
 command = ' '.join(commands)
 
-for i in range(1, maxind+1):
+for i in range(maxind+1):
     f.write(command + f' {i}\n')

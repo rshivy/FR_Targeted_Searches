@@ -17,7 +17,6 @@ dsq --job-file job_scripts/joblist.txt \
 --batch-file job_scripts/dsq-jobfile.sh \
 --status-dir logs/targeted/ \
 --job-name targeted \
---array 1-$high \
 --time 1- \
 --partition scavenge \
 --output logs/targeted/%a.txt \
