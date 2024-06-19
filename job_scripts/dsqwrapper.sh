@@ -1,8 +1,15 @@
 #!/usr/bin/env bash
 
+high=$1
+if [ -z "$1" ]
+then
+  high=111
+fi
+
+
 module purge
 
-python3 job_scripts/dsqwriter.py
+python3 job_scripts/dsqwriter.py $high
 
 module load dSQ
 
@@ -10,6 +17,7 @@ dsq --job-file job_scripts/joblist.txt \
 --batch-file job_scripts/dsq-jobfile.sh \
 --status-dir logs/targeted/ \
 --job-name targeted \
+--array 1-$1 \
 --time 1- \
 --partition scavenge \
 --output logs/targeted/%a.txt \
