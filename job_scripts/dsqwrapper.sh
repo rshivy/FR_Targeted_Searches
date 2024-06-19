@@ -21,6 +21,7 @@ dsq --job-file job_scripts/joblist.txt \
 --partition scavenge \
 --output logs/targeted/%a.txt \
 --error logs/error/targeted/%a.txt \
+--nodes 1 \
 --ntasks 4 \
 --cpus-per-task 1 \
 --mem-per-cpu 10G \

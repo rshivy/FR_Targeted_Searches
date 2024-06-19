@@ -60,9 +60,13 @@ try:
     with open(f'{outdir}/chain_1.txt', 'r') as f:
         n_samples = len(f.readlines())  # The number of lines in the file is the
         # number of samples that have already been taken
-except FileNotFoundError:  # If the file doesn't exist then this error is thrown, in which case
-    # we want to start from the beginning
-    n_samples = 0
+except FileNotFoundError:
+    try:
+        with open(f'{outdir}/chain_1.0.txt', 'r') as f:
+            n_samples = len(f.readlines())
+    except FileNotFoundError:  # If the file doesn't exist then this error is thrown, in which case
+        # we want to start from the beginning
+        n_samples = 0
 if n_samples < 100:
     print(f'{n_samples} samples so far, setting resume = False!')  # If there are only a few then just start over
     resume = False
