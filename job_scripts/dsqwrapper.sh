@@ -1,9 +1,8 @@
 #!/usr/bin/env bash
 
 module purge
-module load python
 
-python job_scripts/dsqwriter.py
+python3 job_scripts/dsqwriter.py
 
 module load dSQ
 
