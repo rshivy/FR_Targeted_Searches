@@ -27,6 +27,3 @@ dsq --job-file job_scripts/joblist.txt \
 --mem-per-cpu 10G \
 --mail-type END \
 --mail-user=forrest.hutchison@yale.edu
-
-echo 'submit with sbatch job_scripts/dsq-jobfile.sh'
-echo Done
