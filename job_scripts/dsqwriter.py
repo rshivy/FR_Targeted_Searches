@@ -4,16 +4,14 @@ This script is made to be called by the dsqwrapper.sh script, but I guess you co
 
 import sys
 
-if len(sys.argv) > 1:
-    maxind = int(sys.argv[1])
-else:
-    maxind = 111
+maxind = int(sys.argv[1])
+ntasks = int(sys.argv[2])
 
 f = open('job_scripts/joblist.txt', 'w')
 commands = ['module load miniconda OpenMPI;',
             'conda activate targeted;',
             'export PYTHONPATH=$(pwd):$PATH;',
-            'mpirun -n 4 python scripts/simple_targeted_search.py -t']
+            f'mpirun -n {ntasks} python scripts/simple_targeted_search.py -t']
 command = ' '.join(commands)
 
 for i in range(maxind+1):
