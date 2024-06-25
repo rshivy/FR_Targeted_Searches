@@ -22,8 +22,8 @@ dsq --job-file job_scripts/joblist.txt \
 --batch-file job_scripts/dsq-jobfile.sh \
 --status-dir logs/targeted/ \
 --job-name targeted \
---time 1- \
---partition scavenge \
+--time 3- \
+--partition pi_mingarelli \
 --output logs/targeted/%a.txt \
 --error logs/error/targeted/%a.txt \
 --nodes 1 \
