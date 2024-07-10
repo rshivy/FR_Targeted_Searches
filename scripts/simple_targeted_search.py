@@ -1,7 +1,9 @@
 import os
 import pickle
 import json
+import getpass
 import numpy as np
+import argparse
 
 from targeted_cws_ng15.models import cw_model_2
 import targeted_cws_ng15.Dists_Parameters as Dists
@@ -9,10 +11,32 @@ from targeted_cws_ng15.jump_proposal import JumpProposal
 from PTMCMCSampler.PTMCMCSampler import PTSampler as Ptmcmc
 from enterprise_extensions.sampler import save_runtime_info
 
-human = 'Forrest H'  # <-- your name here
-source_name = 'ZTF18abxxohm'
+if getpass.getuser() in ['frh7', 'forrest']:
+    human = 'F Hutchison'
+elif getpass.getuser() in ['rjs235', 'rohan']:
+    human = 'R Shivakumar'
 
-outdir = 'data/chains/ng15_v1p1/ZTF18abxxohm'  # set this to wherever you want the output to go
+parser = argparse.ArgumentParser()
+
+parser.add_argument('-t',
+                    '--target',
+                    default='1',
+                    help='Index number of the target',
+                    action='store')
+parser.add_argument('-p',
+                    '--pulsars',
+                    default=None,
+                    help='Number of pulsars to use, for quicker testing',
+                    action='store')
+args = parser.parse_args()
+
+target_ind = args.target.zfill(3)
+with open('Target_Priors/target_index.json', 'r') as f:
+    source_file_name = json.load(f)[target_ind]
+source_name = source_file_name[:-5]
+print(f'Target is {source_name}')
+
+outdir = f'data/chains/ng15_v1p1/target_{target_ind}'  # set this to wherever you want the output to go
 
 # These are all input sources
 # You should have access to my project directory, so you can leave this path as-is
@@ -20,12 +44,14 @@ outdir = 'data/chains/ng15_v1p1/ZTF18abxxohm'  # set this to wherever you want t
 datapath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 noisedict_path = 'noise_dicts/15yr_wn_dict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
-prior_path = 'priors/ZTF18abxxohm_priors.json'
+prior_path = f'Target_Priors/{source_file_name}'
 
 Niter = 500_000
 
-if not os.path.isdir(outdir):  # This makes the output directory if it doesn't already exist
+try:  # This makes the output directory if it doesn't already exist
     os.makedirs(outdir)
+except FileExistsError:
+    print('Directory already exists')
 
 # This checks if the output file already exists (i.e. this script has already been run).
 # This lets you restart if the script was interrupted previously,
@@ -34,9 +60,13 @@ try:
     with open(f'{outdir}/chain_1.txt', 'r') as f:
         n_samples = len(f.readlines())  # The number of lines in the file is the
         # number of samples that have already been taken
-except FileNotFoundError:  # If the file doesn't exist then this error is thrown, in which case
-    # we want to start from the beginning
-    n_samples = 0
+except FileNotFoundError:
+    try:
+        with open(f'{outdir}/chain_1.0.txt', 'r') as f:
+            n_samples = len(f.readlines())
+    except FileNotFoundError:  # If the file doesn't exist then this error is thrown, in which case
+        # we want to start from the beginning
+        n_samples = 0
 if n_samples < 100:
     print(f'{n_samples} samples so far, setting resume = False!')  # If there are only a few then just start over
     resume = False
@@ -49,9 +79,8 @@ else:
 with open(datapath, 'rb') as f:
     psrs = pickle.load(f)
 
-# To make this fast I'm only using 5 pulsars, scrap this if you want the whole data set
-psrs = psrs[:5]
-print('using only first 5 pulsars')
+if args.pulsars is not None:
+    psrs = psrs[:args.pulsars]
 
 # This loads the priors for the following parameters
 #     "RA": "19h30m25.294s",               <-- coordinates of the source
@@ -176,8 +205,8 @@ with open(outdir + '/model_params.json', 'w') as fout:
     json.dump(pta.param_names,
               fout,
               sort_keys=True,
-              indent=4,
-              separators=(',', ': '))
+              indent=4,                # Makes it print prettier
+              separators=(',', ': '))  # This is default
 
 # This does the actual sampling
 sampler.sample(x0,              # Initial samples
