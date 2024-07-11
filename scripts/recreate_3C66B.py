@@ -20,6 +20,12 @@ from enterprise.signals import selections
 
 from PTMCMCSampler.PTMCMCSampler import PTSampler as Ptmcmc
 
+from mpi4py import MPI
+
+comm = MPI.COMM_WORLD
+rank = comm.Get_rank()
+size = comm.Get_size()
+
 
 #################
 # Target Priors #
@@ -164,37 +170,38 @@ sampler.addProposalToCycle(jp.draw_from_prior, 3)
 # Save everything before starting #
 ###################################
 
-# Parsing out the details of the parameters. This might be overly complicated but it works for now
-params = pta.params
-param_names = []
-param_details = {}
-for param in params:
-    param_name, _, type_with_args = str(param).partition(':')
-    param_type, _, args = type_with_args[:-1].partition('(')
-    arg1, _, arg2 = args.partition(', ')
-    param_names += [param_name]
-    param_details[param_name] = [param_type, arg1, arg2]
+if rank == 0:
+    # Parsing out the details of the parameters. This might be overly complicated but it works for now
+    params = pta.params
+    param_names = []
+    param_details = {}
+    for param in params:
+        param_name, _, type_with_args = str(param).partition(':')
+        param_type, _, args = type_with_args[:-1].partition('(')
+        arg1, _, arg2 = args.partition(', ')
+        param_names += [param_name]
+        param_details[param_name] = [param_type, arg1, arg2]
 
-model_parampath = outputdir + '/model_params.json'
-with open(model_parampath, 'w') as f:
-    json.dump(param_names, f, indent=4)
+    model_parampath = outputdir + '/model_params.json'
+    with open(model_parampath, 'w') as f:
+        json.dump(param_names, f, indent=4)
 
-model_priorpath = outputdir + '/model_priors.json'
-with open(model_priorpath, 'w') as f:
-    json.dump(param_details, f, indent=4)
+    model_priorpath = outputdir + '/model_priors.json'
+    with open(model_priorpath, 'w') as f:
+        json.dump(param_details, f, indent=4)
 
-# Also save the constant parameters
-constant_parampath = outputdir + '/constant_params.json'
-with open(constant_parampath, 'w') as f:
-    json.dump(constant_param_names, f, indent=4)
+    # Also save the constant parameters
+    constant_parampath = outputdir + '/constant_params.json'
+    with open(constant_parampath, 'w') as f:
+        json.dump(constant_param_names, f, indent=4)
 
-constant_priorpath = outputdir + '/constant_priors.json'
-with open(constant_priorpath, 'w') as f:
-    json.dump(constant_params, f, indent=4)
+    constant_priorpath = outputdir + '/constant_priors.json'
+    with open(constant_priorpath, 'w') as f:
+        json.dump(constant_params, f, indent=4)
 
-save_runtime_info(pta,
-                  outdir=outputdir,
-                  human='Forrest H')
+    save_runtime_info(pta,
+                      outdir=outputdir,
+                      human='Forrest H')
 
 #########
 # Begin #
