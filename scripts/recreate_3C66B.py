@@ -32,7 +32,7 @@ target_ra = '02h 23m 11.4112s'
 target_dec = '+42d 59m 31.384s'
 target_z = 0.02126
 target_coords = SkyCoord(target_ra, target_dec, distance=target_z * cu.redshift)
-target_dist = target_coords.distance.to(u.mpc, cu.with_redshift(WMAP9, distance='luminosity')).value
+target_dist = target_coords.distance.to(u.Mpc, cu.with_redshift(WMAP9, distance='luminosity')).value
 target_log10_dist = np.log10(target_dist)
 target_coords.representation_type = 'physicsspherical'
 target_cos_theta = np.cos(target_coords.theta.to(u.rad))
@@ -43,23 +43,20 @@ target_phi = target_coords.phi.to(u.rad)
 ################
 
 # Load pulsars from pickle
-# psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
-psrpath = '../data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
+psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 with open(psrpath, 'rb') as f:
     psrs = pickle.load(f)
 # Exclude J1713+0747
 psrs = [psr for psr in psrs if psr.name != 'J1713+0747']
 
-# noisedict_path = 'noise_dicts/15yr_wn_dict.json'
-noisedict_path = '../noise_dicts/15yr_wn_dict.json'
+noisedict_path = 'noise_dicts/15yr_wn_dict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 
 ################
 # Setup Output #
 ################
 
-# outputdir = 'data/chains/ng15_v1p1/3C66B_det'
-outputdir = '../data/chains/ng15_v1p1/3C66B_det'
+outputdir = 'data/chains/ng15_v1p1/3C66B_det'
 if not os.path.exists(outputdir):
     os.mkdir(outputdir)
 
@@ -81,6 +78,13 @@ log10_mc = parameter.Uniform(7, 10)('log10_mc')  # chirp mass of binary
 phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
 psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
 cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth
+
+constant_params = [cos_gwtheta, gwphi, log10_fgw]
+constant_param_names = [p.name for p in constant_params]
+constant_param_values = [p.value if isinstance(p.value, np.float64) else p.value.value
+                         for p in constant_params]
+constant_params = {name: value for name, value in zip(constant_param_names, constant_param_values)}
+
 
 cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  gwphi=gwphi,
@@ -156,6 +160,42 @@ sampler.addProposalToCycle(jp.draw_from_red_prior, 6)
 sampler.addProposalToCycle(jp.draw_from_cw_prior, 6)
 sampler.addProposalToCycle(jp.draw_from_prior, 3)
 
+###################################
+# Save everything before starting #
+###################################
+
+# Parsing out the details of the parameters. This might be overly complicated but it works for now
+params = pta.params
+param_names = []
+param_details = {}
+for param in params:
+    param_name, _, type_with_args = str(param).partition(':')
+    param_type, _, args = type_with_args[:-1].partition('(')
+    arg1, _, arg2 = args.partition(', ')
+    param_names += [param_name]
+    param_details[param_name] = [param_type, arg1, arg2]
+
+model_parampath = outputdir + '/model_params.json'
+with open(model_parampath, 'w') as f:
+    json.dump(param_names, f, indent=4)
+
+model_priorpath = outputdir + '/model_priors.json'
+with open(model_priorpath, 'w') as f:
+    json.dump(param_details, f, indent=4)
+
+# Also save the constant parameters
+constant_parampath = outputdir + '/constant_params.json'
+with open(constant_parampath, 'w') as f:
+    json.dump(constant_param_names, f, indent=4)
+
+constant_priorpath = outputdir + '/constant_priors.json'
+with open(constant_priorpath, 'w') as f:
+    json.dump(constant_params, f, indent=4)
+
+
+#########
+# Begin #
+#########
 N = 1_000_000
 sampler.sample(x0,
                N,
