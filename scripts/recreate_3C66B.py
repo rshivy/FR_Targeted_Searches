@@ -11,7 +11,7 @@ import astropy.units as u
 import astropy.cosmology.units as cu
 from astropy.cosmology import WMAP9
 
-from enterprise_extensions.sampler import get_parameter_groups, JumpProposal
+from enterprise_extensions.sampler import get_parameter_groups, JumpProposal, save_runtime_info
 from enterprise_extensions.deterministic import cw_delay, CWSignal
 import enterprise.signals.parameter as parameter
 from enterprise.signals import gp_signals, white_signals
@@ -192,6 +192,9 @@ constant_priorpath = outputdir + '/constant_priors.json'
 with open(constant_priorpath, 'w') as f:
     json.dump(constant_params, f, indent=4)
 
+save_runtime_info(pta,
+                  outdir=outputdir,
+                  human='Forrest H')
 
 #########
 # Begin #
