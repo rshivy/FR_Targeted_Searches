@@ -43,23 +43,20 @@ target_phi = target_coords.phi.to(u.rad)
 ################
 
 # Load pulsars from pickle
-# psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
-psrpath = '../data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
+psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 with open(psrpath, 'rb') as f:
     psrs = pickle.load(f)
 # Exclude J1713+0747
 psrs = [psr for psr in psrs if psr.name != 'J1713+0747']
 
-# noisedict_path = 'noise_dicts/15yr_wn_dict.json'
-noisedict_path = '../noise_dicts/15yr_wn_dict.json'
+noisedict_path = 'noise_dicts/15yr_wn_dict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 
 ################
 # Setup Output #
 ################
 
-# outputdir = 'data/chains/ng15_v1p1/3C66B_det'
-outputdir = '../data/chains/ng15_v1p1/3C66B_det'
+outputdir = 'data/chains/ng15_v1p1/3C66B_det'
 if not os.path.exists(outputdir):
     os.mkdir(outputdir)
 
@@ -155,6 +152,17 @@ jp = JumpProposal(pta)
 sampler.addProposalToCycle(jp.draw_from_red_prior, 6)
 sampler.addProposalToCycle(jp.draw_from_cw_prior, 6)
 sampler.addProposalToCycle(jp.draw_from_prior, 3)
+
+###################################
+# Save everything before starting #
+###################################
+
+parampath = outputdir + '/params.txt'
+np.savetxt(parampath, [str(param) for param in pta.params], fmt='%s')
+
+#########
+# Begin #
+#########
 
 N = 1_000_000
 sampler.sample(x0,
