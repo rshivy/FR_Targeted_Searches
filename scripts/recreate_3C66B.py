@@ -77,6 +77,7 @@ tref = max(tmax)
 
 tm = gp_signals.TimingModel()
 
+# CW parameters
 cos_gwtheta = parameter.Constant(val=target_cos_theta)('cos_gwtheta')  # position of source
 gwphi = parameter.Constant(val=target_phi)('gwphi')  # position of source
 log10_fgw = parameter.Constant(val=target_log10_freq)('log10_fgw')  # gw frequency
@@ -85,13 +86,8 @@ phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
 psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
 cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth
 
-constant_params = [cos_gwtheta, gwphi, log10_fgw]
-constant_param_names = [p.name for p in constant_params]
-constant_param_values = [p.value if isinstance(p.value, np.float64) else p.value.value
-                         for p in constant_params]
-constant_params = {name: value for name, value in zip(constant_param_names, constant_param_values)}
-
-
+# Distance parameter class
+pdist = parameter.Normal()
 cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  gwphi=gwphi,
                  log10_fgw=log10_fgw,
@@ -103,7 +99,7 @@ cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  tref=tref,
                  evolve=False,
                  psrTerm=True,
-                 p_dist=0)
+                 pdist=pdist)
 
 cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
 
@@ -135,6 +131,16 @@ pta = signal_base.PTA(model)
 with open(noisedict_path, 'r') as fp:
     noise_params = json.load(fp)
 pta.set_default_params(noise_params)
+
+with open(psrdists_path, 'rb') as f:
+    psrdists = pickle.load(f)
+for signal_collection in pta._signalcollections:
+    for signal in signal_collection._signals:
+        for param_key, param in signal._params.items():
+            if 'pdist' in param_key:
+                print(f'replacing {param_key}')
+                psrname = param_key.split('_')[0]
+                signal._params[param_key] = parameter.Normal(psrdists[psrname][0], psrdists[psrname][1])(param.name)
 
 #######################
 # PTMCMCSampler Setup #
@@ -191,9 +197,20 @@ if rank == 0:
         json.dump(param_details, f, indent=4)
 
     # Also save the constant parameters
+
+    constant_params = set()
+    for signal_collection in pta._signalcollections:
+        for signal in signal_collection._signals:
+            for param_name, param in signal._params.items():
+                if isinstance(param, parameter.ConstantParameter):
+                    constant_params.add(param)
+    constant_params = {cp.name: cp.value if isinstance(cp.value, (np.float64, float))
+                       else cp.value.value
+                       for cp in sorted(list(constant_params), key=lambda cp: cp.name)}
+
     constant_parampath = outputdir + '/constant_params.json'
     with open(constant_parampath, 'w') as f:
-        json.dump(constant_param_names, f, indent=4)
+        json.dump(list(constant_params.keys()), f, indent=4)
 
     constant_priorpath = outputdir + '/constant_priors.json'
     with open(constant_priorpath, 'w') as f:
