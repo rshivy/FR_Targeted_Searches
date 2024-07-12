@@ -87,7 +87,7 @@ psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
 cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth
 
 # Distance parameter class
-pdist = parameter.Normal()
+p_dist = parameter.Normal()
 cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  gwphi=gwphi,
                  log10_fgw=log10_fgw,
@@ -99,7 +99,7 @@ cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  tref=tref,
                  evolve=False,
                  psrTerm=True,
-                 pdist=pdist)
+                 p_dist=p_dist)
 
 cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
 
@@ -137,7 +137,7 @@ with open(psrdists_path, 'rb') as f:
 for signal_collection in pta._signalcollections:
     for signal in signal_collection._signals:
         for param_key, param in signal._params.items():
-            if 'pdist' in param_key:
+            if 'p_dist' in param_key:
                 print(f'replacing {param_key}')
                 psrname = param_key.split('_')[0]
                 signal._params[param_key] = parameter.Normal(psrdists[psrname][0], psrdists[psrname][1])(param.name)
