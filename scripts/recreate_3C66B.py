@@ -165,7 +165,7 @@ sampler = Ptmcmc(ndim,
                  cov,
                  groups=groups,
                  outDir=outputdir,
-                 resume=True)
+                 resume=False)
 
 # Create and add jump proposals
 jp = JumpProposal(pta)
@@ -225,7 +225,7 @@ if rank == 0:
 # Begin #
 #########
 
-N = 1_000_000
+N = 10_000_000
 sampler.sample(x0,
                N,
                SCAMweight=40,
