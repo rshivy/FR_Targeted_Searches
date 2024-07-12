@@ -80,6 +80,7 @@ tm = gp_signals.TimingModel()
 # CW parameters
 cos_gwtheta = parameter.Constant(val=target_cos_theta)('cos_gwtheta')  # position of source
 gwphi = parameter.Constant(val=target_phi)('gwphi')  # position of source
+log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # sistance to source
 log10_fgw = parameter.Constant(val=target_log10_freq)('log10_fgw')  # gw frequency
 log10_mc = parameter.Uniform(7, 10)('log10_mc')  # chirp mass of binary
 phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
@@ -95,7 +96,7 @@ cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  phase0=phase0,
                  psi=psi,
                  cos_inc=cos_inc,
-                 log10_dist=target_log10_dist,
+                 log10_dist=log10_dist,
                  tref=tref,
                  evolve=False,
                  psrTerm=True,
@@ -164,7 +165,7 @@ sampler = Ptmcmc(ndim,
                  cov,
                  groups=groups,
                  outDir=outputdir,
-                 resume=False)
+                 resume=True)
 
 # Create and add jump proposals
 jp = JumpProposal(pta)
