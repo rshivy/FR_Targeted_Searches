@@ -39,8 +39,8 @@ target_ra = target_priors['RA']
 target_dec = target_priors['DEC']
 target_log10_dist = target_priors['log10_dist']
 target_log10_freq = target_priors['log10_freq']
-target_log10_freq_low = target_log10_freq + np.log10(6)
-target_log10_freq_high = target_log10_freq - np.log10(6)
+target_log10_freq_low = target_log10_freq - np.log10(6)
+target_log10_freq_high = target_log10_freq + np.log10(6)
 # target_z = 0.02126
 target_coords = SkyCoord(target_ra, target_dec)
 # target_dist = target_coords.distance.to(u.Mpc, cu.with_redshift(WMAP9, distance='luminosity')).value
