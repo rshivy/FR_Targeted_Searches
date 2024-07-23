@@ -5,7 +5,7 @@
 #SBATCH --output=logs/target_001_det.txt
 #SBATCH --error=logs/error/target_001_det.txt
 #SBATCH --cpus-per-task=1
-#SBATCH --ntasks=4
+#SBATCH --ntasks=1
 #SBATCH --nodes=1
 #SBATCH --mem-per-cpu=10G
 
@@ -14,4 +14,4 @@ module load OpenMPI
 conda activate targeted
 
 export PYTHONPATH=$(pwd):$PYTHONPATH
-mpirun -n 4 python scripts/full_targeted.py
+python scripts/full_targeted.py

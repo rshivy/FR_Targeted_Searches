@@ -105,8 +105,7 @@ cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  cos_inc=cos_inc,
                  log10_dist=log10_dist,
                  tref=tref,
-                 evolve=False,
-                 check=True,
+                 evolve=True,
                  psrTerm=True,
                  p_dist=p_dist)
 
