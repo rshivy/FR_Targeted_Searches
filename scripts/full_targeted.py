@@ -14,6 +14,7 @@ from astropy.cosmology import WMAP9
 from enterprise_extensions.sampler import get_parameter_groups, JumpProposal, save_runtime_info
 from enterprise_extensions.deterministic import CWSignal  # , cw_delay
 from targeted_cws_ng15.new_delays_2 import cw_delay_new as cw_delay
+from targeted_cws_ng15.jump_proposal import JumpProposal
 import enterprise.signals.parameter as parameter
 from enterprise.signals import gp_signals, white_signals
 from enterprise.signals import signal_base, utils
@@ -139,7 +140,6 @@ cpl = utils.powerlaw(log10_A=log10_A_crn, gamma=gamma_crn)
 
 crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=Tspan, name='crn')
 
-
 s = cw + efeq + ec + rn + crn
 
 model = [s(psr) for psr in psrs]
@@ -188,9 +188,9 @@ sampler.addProposalToCycle(jp.draw_from_red_prior, 30)
 sampler.addProposalToCycle(jp.draw_from_cw_prior, 20)
 sampler.addProposalToCycle(jp.draw_from_prior, 10)
 
-sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']),10)
-sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']),5)
-sampler.addProposalToCycle(jp.draw_from_gwb_log_uniform_distribution,5)
+sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']), 10)
+sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']), 5)
+sampler.addProposalToCycle(jp.draw_from_gwb_log_uniform_distribution, 5)
 
 ###################################
 # Save everything before starting #
@@ -225,7 +225,7 @@ if rank == 0:
                 if isinstance(param, parameter.ConstantParameter):
                     constant_params.add(param)
     constant_params = {cp.name: cp.value if isinstance(cp.value, (np.float64, float))
-                       else cp.value.value
+    else cp.value.value
                        for cp in sorted(list(constant_params), key=lambda cp: cp.name)}
 
     constant_parampath = outputdir + '/constant_params.json'
