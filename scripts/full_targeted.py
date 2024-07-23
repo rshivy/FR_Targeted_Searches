@@ -67,7 +67,7 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 # Setup Output #
 ################
 
-outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026'
+outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_varyfgw'
 if not os.path.exists(outputdir):
     os.mkdir(outputdir)
 
@@ -184,9 +184,13 @@ sampler = Ptmcmc(ndim=ndim,
 
 # Create and add jump proposals
 jp = JumpProposal(pta)
-sampler.addProposalToCycle(jp.draw_from_red_prior, 6)
-sampler.addProposalToCycle(jp.draw_from_cw_prior, 6)
-sampler.addProposalToCycle(jp.draw_from_prior, 3)
+sampler.addProposalToCycle(jp.draw_from_red_prior, 30)
+sampler.addProposalToCycle(jp.draw_from_cw_prior, 20)
+sampler.addProposalToCycle(jp.draw_from_prior, 10)
+
+sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']),10)
+sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']),5)
+sampler.addProposalToCycle(jp.draw_from_gwb_log_uniform_distribution,5)
 
 ###################################
 # Save everything before starting #
@@ -244,5 +248,5 @@ N = 10_000_000
 sampler.sample(p0=x0,
                Niter=N,
                SCAMweight=40,
-               AMweight=20,
-               DEweight=20)
+               AMweight=25,
+               DEweight=25)
