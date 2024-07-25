@@ -1,4 +1,6 @@
 import numpy as np
+from astropy.constants import c, G, M_sun, pc
+
 
 def cg1_mass(solarmass_mass):  # Convert mass from solar mass to seconds
     return solarmass_mass * M_sun.value * (G.value / (c.value ** 3))
@@ -30,6 +32,7 @@ def calc_log10_strain(log10solarmass_mass, log10freq, log10mpc_dist):
     log10dist = log_cg1_dist(log10mpc_dist)
     log10strain = (5 / 3) * log10mass + (2 / 3) * log10freq - log10dist + np.log10(2 * np.pi)
     return log10strain
+
 
 def load_priors(path_to_chain_dir):
     priorpath = path_to_chain_dir / 'priors.txt'

@@ -1,6 +1,6 @@
 from pathlib import Path
 import numpy as np
-from astropy.constants import c, G, M_sun, pc
+
 import json
 import matplotlib.pyplot as plt
 from la_forge.core import Core

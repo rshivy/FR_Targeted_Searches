@@ -1,0 +1,169 @@
+import os
+import json
+import pickle
+
+import numpy as np
+from astropy.coordinates import SkyCoord
+import astropy.units as u
+
+from enterprise.signals import gp_signals, white_signals
+from enterprise.signals import parameter
+from enterprise_extensions.deterministic import CWSignal  # , cw_delay
+from targeted_cws_ng15.new_delays_2 import cw_delay_new as cw_delay
+from enterprise.signals import selections
+from enterprise.signals import signal_base, utils
+
+
+class ModelBuilder:
+    def __init__(self,
+                 target_prior_path,
+                 pulsar_path,
+                 noisedict_path,
+                 pulsar_dists_path,
+                 output_path,
+                 exclude_pulsars=None,
+                 vary_fgw=True):
+        ################
+        # Data sources #
+        ################
+        self.target_prior_path = target_prior_path
+        self.pulsar_path = pulsar_path
+        self.noisedict_path = noisedict_path
+        self.pulsar_dists_path = pulsar_dists_path
+        self.exclude_pulsars = exclude_pulsars
+
+        ################
+        # Setup Output #
+        ################
+
+        self.output_path = output_path
+        if not os.path.exists(self.output_path):
+            os.mkdir(self.output_path)
+
+        #####################
+        # Set Target Priors #
+        #####################
+
+        with open(self.target_prior_path, 'rb') as f:
+            target_priors = json.load(f)
+
+        self.target_ra = target_priors['RA']
+        self.target_dec = target_priors['DEC']
+        self.target_log10_dist = target_priors['log10_dist']
+        self.target_log10_freq = target_priors['log10_freq']
+
+        self.target_coords = SkyCoord(self.target_ra, self.target_dec)
+        self.target_coords.representation_type = 'physicsspherical'
+        self.target_cos_theta = np.cos(self.target_coords.theta.to(u.rad))
+        self.target_phi = self.target_coords.phi.to(u.rad)
+
+        ################
+        # Load Pulsars #
+        ################
+
+        with open(self.pulsar_path, 'rb') as f:
+            self.psrs = pickle.load(f)
+        # Exclude pulsars specified in call, if any
+        self.psrs = [psr for psr in self.psrs if psr.name not in self.exclude_pulsars]
+
+        ##########################
+        # Setup Enterprise Model #
+        ##########################
+
+        tmin = [p.toas.min() for p in self.psrs]
+        tmax = [p.toas.max() for p in self.psrs]
+        tspan = np.max(tmax) - np.min(tmin)
+        tref = max(tmax)
+
+        tm = gp_signals.TimingModel()
+
+        # CW parameters
+        cos_gwtheta = parameter.Constant(val=self.target_cos_theta)('cos_gwtheta')  # position of source
+        gwphi = parameter.Constant(val=self.target_phi)('gwphi')  # position of source
+        log10_dist = parameter.Constant(val=self.target_log10_dist)('log10_dist')  # sistance to source
+        if vary_fgw: # Allow gw frequency to vary by a factor of six in either direction
+            self.target_log10_freq_low = self.target_log10_freq - np.log10(6)
+            self.target_log10_freq_high = self.target_log10_freq + np.log10(6)
+            log10_fgw = parameter.Uniform(pmin=self.target_log10_freq_low,
+                                          pmax=self.target_log10_freq_high)('log10_fgw')
+        else:
+            log10_fgw = parameter.Constant(val=self.target_log10_freq)('log10_fgw')
+
+        log10_mc = parameter.Uniform(8, 11)('log10_mc')  # chirp mass of binary
+        phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
+        psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
+        cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth
+
+        p_dist = parameter.Normal()
+        cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
+                         gwphi=gwphi,
+                         log10_fgw=log10_fgw,
+                         log10_mc=log10_mc,
+                         phase0=phase0,
+                         psi=psi,
+                         cos_inc=cos_inc,
+                         log10_dist=log10_dist,
+                         tref=tref,
+                         evolve=True,
+                         psrTerm=True,
+                         p_dist=p_dist)
+
+        cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
+
+        # White noise
+        backend = selections.Selection(selections.by_backend)
+        backend_ng = selections.Selection(selections.nanograv_backends)
+
+        efac = parameter.Constant()
+        log10_equad = parameter.Constant()
+        log10_ecorr = parameter.Constant()
+        efeq = white_signals.MeasurementNoise(efac=efac,
+                                              log10_t2equad=log10_equad,
+                                              selection=backend)
+        ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr,
+                                            selection=backend_ng)
+
+        log10_A = parameter.Uniform(-20, -11)
+        gamma = parameter.Uniform(0, 7)
+
+        pl = utils.powerlaw(log10_A=log10_A, gamma=gamma)
+        rn = gp_signals.FourierBasisGP(pl, components=30, Tspan=tspan, selection=backend)
+
+        # Common red noise
+        log10_A_crn = parameter.Uniform(-18, -11)('crn_log10_A')
+        gamma_crn = parameter.Uniform(0, 7)('gamma_crn')
+
+        cpl = utils.powerlaw(log10_A=log10_A_crn, gamma=gamma_crn)
+
+        crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=tspan, name='crn')
+
+        s = cw + efeq + ec + rn + crn
+
+        model = [s(psr) for psr in self.psrs]
+        self.pta = signal_base.PTA(model)
+
+        with open(noisedict_path, 'r') as fp:
+            noise_params = json.load(fp)
+        self.pta.set_default_params(noise_params)
+
+        with open(self.pulsar_dists_path, 'rb') as f:
+            psrdists = pickle.load(f)
+
+
+
+if __name__ == '__main__':
+    exclude_pulsars_def = []
+    target_prior_path_def = 'Target_Priors/001_MCG_5-40-026.json'
+    pulsar_path_def = ('/gpfs/gibbs/project/mingarelli/frh7/'
+                       'targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl')
+    noisedict_path_def = 'noise_dicts/15yr_wn_dict.json'
+    pulsar_dists_path_def = 'psr_distances/pulsar_distances_15yr.pkl'
+    output_path_def = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_varyfgw'
+
+    pta = ModelBuilder(target_prior_path=target_prior_path_def,
+                       pulsar_path=pulsar_path_def,
+                       noisedict_path=noisedict_path_def,
+                       pulsar_dists_path=pulsar_dists_path_def,
+                       output_path=output_path_def,
+                       exclude_pulsars=exclude_pulsars_def)
+

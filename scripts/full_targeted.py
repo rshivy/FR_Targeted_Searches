@@ -86,7 +86,7 @@ tm = gp_signals.TimingModel()
 # CW parameters
 cos_gwtheta = parameter.Constant(val=target_cos_theta)('cos_gwtheta')  # position of source
 gwphi = parameter.Constant(val=target_phi)('gwphi')  # position of source
-log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # sistance to source
+log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # distance to source
 # log10_fgw = parameter.Constant(val=target_log10_freq)('log10_fgw')  # gw frequency
 # Allow frequency to vary by a factor of six in either direction
 log10_fgw = parameter.Uniform(pmin=target_log10_freq_low, pmax=target_log10_freq_high)('log10_fgw')
@@ -108,7 +108,8 @@ cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                  tref=tref,
                  evolve=True,
                  psrTerm=True,
-                 p_dist=p_dist)
+                 p_dist=p_dist,
+                 scale_shift_pdists=False)
 
 cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
 
@@ -225,7 +226,7 @@ if rank == 0:
                 if isinstance(param, parameter.ConstantParameter):
                     constant_params.add(param)
     constant_params = {cp.name: cp.value if isinstance(cp.value, (np.float64, float))
-    else cp.value.value
+                       else cp.value.value
                        for cp in sorted(list(constant_params), key=lambda cp: cp.name)}
 
     constant_parampath = outputdir + '/constant_params.json'
