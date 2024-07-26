@@ -1,4 +1,3 @@
-import os
 import json
 import pickle
 
@@ -13,6 +12,9 @@ from targeted_cws_ng15.new_delays_2 import cw_delay_new as cw_delay
 from enterprise.signals import selections
 from enterprise.signals import signal_base, utils
 
+from targeted_cws_ng15.Dists_Parameters import PXDistParameter
+from QuickCW.PulsarDistPriors import DMDistParameter
+
 
 class ModelBuilder:
     def __init__(self,
@@ -20,9 +22,18 @@ class ModelBuilder:
                  pulsar_path,
                  noisedict_path,
                  pulsar_dists_path,
-                 output_path,
                  exclude_pulsars=None,
                  vary_fgw=True):
+        """
+        Builds a PTA object according to my usual targeted search model choices
+
+        :param target_prior_path: Path to a json file containing prior values for the target
+        :param pulsar_path: Path to a pkl containing the NANOGrav pulsars
+        :param noisedict_path: Path to a json file containing noise parameter valus
+        :param pulsar_dists_path: Path to a pkl containing a dict of pulsar distance parameter values
+        :param exclude_pulsars: A list of pulsar names to not use, default is None
+        :param vary_fgw: False uses target prior value, True is log uniform +/- log10(6)
+        """
         ################
         # Data sources #
         ################
@@ -31,14 +42,6 @@ class ModelBuilder:
         self.noisedict_path = noisedict_path
         self.pulsar_dists_path = pulsar_dists_path
         self.exclude_pulsars = exclude_pulsars
-
-        ################
-        # Setup Output #
-        ################
-
-        self.output_path = output_path
-        if not os.path.exists(self.output_path):
-            os.mkdir(self.output_path)
 
         #####################
         # Set Target Priors #
@@ -63,8 +66,9 @@ class ModelBuilder:
 
         with open(self.pulsar_path, 'rb') as f:
             self.psrs = pickle.load(f)
-        # Exclude pulsars specified in call, if any
-        self.psrs = [psr for psr in self.psrs if psr.name not in self.exclude_pulsars]
+        # Exclude specified pulsars, if any
+        if self.exclude_pulsars is not None:
+            self.psrs = [psr for psr in self.psrs if psr.name not in self.exclude_pulsars]
 
         ##########################
         # Setup Enterprise Model #
@@ -75,13 +79,13 @@ class ModelBuilder:
         tspan = np.max(tmax) - np.min(tmin)
         tref = max(tmax)
 
-        tm = gp_signals.TimingModel()
+        tm = gp_signals.MarginalizingTimingModel(use_svd=True)
 
         # CW parameters
         cos_gwtheta = parameter.Constant(val=self.target_cos_theta)('cos_gwtheta')  # position of source
         gwphi = parameter.Constant(val=self.target_phi)('gwphi')  # position of source
         log10_dist = parameter.Constant(val=self.target_log10_dist)('log10_dist')  # sistance to source
-        if vary_fgw: # Allow gw frequency to vary by a factor of six in either direction
+        if vary_fgw:  # Allow gw frequency to vary by a factor of six in either direction
             self.target_log10_freq_low = self.target_log10_freq - np.log10(6)
             self.target_log10_freq_high = self.target_log10_freq + np.log10(6)
             log10_fgw = parameter.Uniform(pmin=self.target_log10_freq_low,
@@ -93,22 +97,6 @@ class ModelBuilder:
         phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
         psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
         cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth
-
-        p_dist = parameter.Normal()
-        cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
-                         gwphi=gwphi,
-                         log10_fgw=log10_fgw,
-                         log10_mc=log10_mc,
-                         phase0=phase0,
-                         psi=psi,
-                         cos_inc=cos_inc,
-                         log10_dist=log10_dist,
-                         tref=tref,
-                         evolve=True,
-                         psrTerm=True,
-                         p_dist=p_dist)
-
-        cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
 
         # White noise
         backend = selections.Selection(selections.by_backend)
@@ -137,33 +125,60 @@ class ModelBuilder:
 
         crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=tspan, name='crn')
 
-        s = cw + efeq + ec + rn + crn
+        s = tm + efeq + ec + rn + crn
 
+        with open(self.pulsar_dists_path, 'rb') as f:
+            psrdists = pickle.load(f)
+        # Adding individual cws so we can set pulsar distances
+        for psr in self.psrs:
+            # Set pulsar distance parameter
+            if psrdists[psr.name][2] == 'PX':
+                p_dist = PXDistParameter(dist=psrdists[psr.name][0],
+                                         err=psrdists[psr.name][1])
+            elif psrdists[psr.name][2] == 'DM':
+                p_dist = DMDistParameter(dist=psrdists[psr.name][0],
+                                         err=psrdists[psr.name][1])
+            else:
+                raise ValueError("Can't find if distances are PX or DM!")
+
+            cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
+                             gwphi=gwphi,
+                             log10_fgw=log10_fgw,
+                             log10_mc=log10_mc,
+                             phase0=phase0,
+                             psi=psi,
+                             cos_inc=cos_inc,
+                             log10_dist=log10_dist,
+                             tref=tref,
+                             evolve=True,
+                             psrTerm=True,
+                             p_dist=p_dist,
+                             scale_shift_pdists=False)  # Bjorn's toggle to fix pulsar distances
+
+            cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
+            s += cw
+
+        # Instantiate signal collection
         model = [s(psr) for psr in self.psrs]
         self.pta = signal_base.PTA(model)
 
+        # Set white noise parameters
         with open(noisedict_path, 'r') as fp:
             noise_params = json.load(fp)
         self.pta.set_default_params(noise_params)
 
-        with open(self.pulsar_dists_path, 'rb') as f:
-            psrdists = pickle.load(f)
-
-
 
 if __name__ == '__main__':
-    exclude_pulsars_def = []
     target_prior_path_def = 'Target_Priors/001_MCG_5-40-026.json'
     pulsar_path_def = ('/gpfs/gibbs/project/mingarelli/frh7/'
                        'targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl')
     noisedict_path_def = 'noise_dicts/15yr_wn_dict.json'
     pulsar_dists_path_def = 'psr_distances/pulsar_distances_15yr.pkl'
-    output_path_def = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_varyfgw'
+    exclude_pulsars_def = []
 
     pta = ModelBuilder(target_prior_path=target_prior_path_def,
                        pulsar_path=pulsar_path_def,
                        noisedict_path=noisedict_path_def,
                        pulsar_dists_path=pulsar_dists_path_def,
-                       output_path=output_path_def,
-                       exclude_pulsars=exclude_pulsars_def)
-
+                       exclude_pulsars=exclude_pulsars_def,
+                       vary_fgw=True)
