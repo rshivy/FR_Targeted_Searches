@@ -4,6 +4,7 @@ Full targeted search script
 import numpy as np
 import os
 import json
+import argparse
 
 from enterprise_extensions.sampler import get_parameter_groups, save_runtime_info  # , JumpProposal
 from targeted_cws_ng15.jump_proposal import JumpProposal
@@ -19,6 +20,15 @@ comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
 
+###########
+# Options #
+###########
+
+parser = argparse.ArgumentParser()
+parser.add_argument('-o', '--out', action='store', type=str, dest='output_suffix')
+args = parser.parse_args()
+
+
 ################
 # Data Sources #
 ################
@@ -32,7 +42,9 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 # Setup Output #
 ################
 
-outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_narrowfgw'
+outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_narrowfgw' + args.output_suffix
+if args.output_suffix is not None:
+    outputdir += '_' + args.output_suffix
 if not os.path.exists(outputdir):
     os.mkdir(outputdir)
 
