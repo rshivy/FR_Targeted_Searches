@@ -2,65 +2,29 @@
 Full targeted search script
 """
 import numpy as np
-import pickle
 import os
 import json
 
-from astropy.coordinates import SkyCoord
-import astropy.units as u
-import astropy.cosmology.units as cu
-from astropy.cosmology import WMAP9
-
-from enterprise_extensions.sampler import get_parameter_groups, JumpProposal, save_runtime_info
-from enterprise_extensions.deterministic import CWSignal  # , cw_delay
-from targeted_cws_ng15.new_delays_2 import cw_delay_new as cw_delay
+from enterprise_extensions.sampler import get_parameter_groups, save_runtime_info  # , JumpProposal
 from targeted_cws_ng15.jump_proposal import JumpProposal
 import enterprise.signals.parameter as parameter
-from enterprise.signals import gp_signals, white_signals
-from enterprise.signals import signal_base, utils
-from enterprise.signals import selections
 
 from PTMCMCSampler.PTMCMCSampler import PTSampler as Ptmcmc
 
 from mpi4py import MPI
 
+from tsutils.model_builder import ts_model_builder
+
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
-
-#################
-# Target Priors #
-#################
-
-target_prior_path = 'Target_Priors/001_MCG_5-40-026.json'
-with open(target_prior_path, 'rb') as f:
-    target_priors = json.load(f)
-
-target_ra = target_priors['RA']
-target_dec = target_priors['DEC']
-target_log10_dist = target_priors['log10_dist']
-target_log10_freq = target_priors['log10_freq']
-target_log10_freq_low = target_log10_freq - np.log10(6)
-target_log10_freq_high = target_log10_freq + np.log10(6)
-# target_z = 0.02126
-target_coords = SkyCoord(target_ra, target_dec)
-# target_dist = target_coords.distance.to(u.Mpc, cu.with_redshift(WMAP9, distance='luminosity')).value
-# target_log10_dist = np.log10(target_dist)
-target_coords.representation_type = 'physicsspherical'
-target_cos_theta = np.cos(target_coords.theta.to(u.rad))
-target_phi = target_coords.phi.to(u.rad)
 
 ################
 # Data Sources #
 ################
 
-# Load pulsars from pickle
+target_prior_path = 'Target_Priors/001_MCG_5-40-026.json'
 psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
-with open(psrpath, 'rb') as f:
-    psrs = pickle.load(f)
-# Exclude J1713+0747
-# psrs = [psr for psr in psrs if psr.name != 'J1713+0747']
-
 noisedict_path = 'noise_dicts/15yr_wn_dict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 
@@ -76,88 +40,12 @@ if not os.path.exists(outputdir):
 # Setup Enterprise Model #
 ##########################
 
-tmin = [p.toas.min() for p in psrs]
-tmax = [p.toas.max() for p in psrs]
-Tspan = np.max(tmax) - np.min(tmin)
-tref = max(tmax)
-
-tm = gp_signals.TimingModel()
-
-# CW parameters
-cos_gwtheta = parameter.Constant(val=target_cos_theta)('cos_gwtheta')  # position of source
-gwphi = parameter.Constant(val=target_phi)('gwphi')  # position of source
-log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # distance to source
-# log10_fgw = parameter.Constant(val=target_log10_freq)('log10_fgw')  # gw frequency
-# Allow frequency to vary by a factor of six in either direction
-log10_fgw = parameter.Uniform(pmin=target_log10_freq_low, pmax=target_log10_freq_high)('log10_fgw')
-log10_mc = parameter.Uniform(7, 10)('log10_mc')  # chirp mass of binary
-phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
-psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
-cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth
-
-# Distance parameter class
-p_dist = parameter.Normal()
-cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
-                 gwphi=gwphi,
-                 log10_fgw=log10_fgw,
-                 log10_mc=log10_mc,
-                 phase0=phase0,
-                 psi=psi,
-                 cos_inc=cos_inc,
-                 log10_dist=log10_dist,
-                 tref=tref,
-                 evolve=True,
-                 psrTerm=True,
-                 p_dist=p_dist,
-                 scale_shift_pdists=False)
-
-cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
-
-# White noise
-backend = selections.Selection(selections.by_backend)
-backend_ng = selections.Selection(selections.nanograv_backends)
-
-efac = parameter.Constant()
-log10_equad = parameter.Constant()
-log10_ecorr = parameter.Constant()
-efeq = white_signals.MeasurementNoise(efac=efac,
-                                      log10_t2equad=log10_equad,
-                                      selection=backend)
-ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr,
-                                    selection=backend_ng)
-
-# Red Noise
-log10_A = parameter.Uniform(-20, -11)
-gamma = parameter.Uniform(0, 7)
-
-pl = utils.powerlaw(log10_A=log10_A, gamma=gamma)
-rn = gp_signals.FourierBasisGP(pl, components=30, Tspan=Tspan, selection=backend)
-
-# Common red noise
-log10_A_crn = parameter.Uniform(-18, -11)('crn_log10_A')
-gamma_crn = parameter.Uniform(0, 7)('gamma_crn')
-
-cpl = utils.powerlaw(log10_A=log10_A_crn, gamma=gamma_crn)
-
-crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=Tspan, name='crn')
-
-s = cw + efeq + ec + rn + crn
-
-model = [s(psr) for psr in psrs]
-pta = signal_base.PTA(model)
-
-with open(noisedict_path, 'r') as fp:
-    noise_params = json.load(fp)
-pta.set_default_params(noise_params)
-
-with open(psrdists_path, 'rb') as f:
-    psrdists = pickle.load(f)
-for signal_collection in pta._signalcollections:
-    for signal in signal_collection._signals:
-        for param_key, param in signal._params.items():
-            if 'p_dist' in param_key:
-                psrname = param_key.split('_')[0]
-                signal._params[param_key] = parameter.Normal(psrdists[psrname][0], psrdists[psrname][1])(param.name)
+pta = ts_model_builder(target_prior_path=target_prior_path,
+                       pulsar_path=psrpath,
+                       noisedict_path=noisedict_path,
+                       pulsar_dists_path=psrdists_path,
+                       exclude_pulsars=None,
+                       vary_fgw=True).pta
 
 #######################
 # PTMCMCSampler Setup #
