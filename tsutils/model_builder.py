@@ -167,9 +167,9 @@ if __name__ == '__main__':
     pulsar_dists_path_def = 'psr_distances/pulsar_distances_15yr.pkl'
     exclude_pulsars_def = []
 
-    pta = ts_model_builder(target_prior_path=target_prior_path_def,
-                           pulsar_path=pulsar_path_def,
-                           noisedict_path=noisedict_path_def,
-                           pulsar_dists_path=pulsar_dists_path_def,
-                           exclude_pulsars=exclude_pulsars_def,
-                           vary_fgw=True)
+    pta_out = ts_model_builder(target_prior_path=target_prior_path_def,
+                               pulsar_path=pulsar_path_def,
+                               noisedict_path=noisedict_path_def,
+                               pulsar_dists_path=pulsar_dists_path_def,
+                               exclude_pulsars=exclude_pulsars_def,
+                               vary_fgw=True)

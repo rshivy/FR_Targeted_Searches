@@ -32,7 +32,7 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 # Setup Output #
 ################
 
-outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_varyfgw'
+outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_narrowfgw'
 if not os.path.exists(outputdir):
     os.mkdir(outputdir)
 
@@ -45,7 +45,7 @@ pta = ts_model_builder(target_prior_path=target_prior_path,
                        noisedict_path=noisedict_path,
                        pulsar_dists_path=psrdists_path,
                        exclude_pulsars=None,
-                       vary_fgw=True).pta
+                       vary_fgw=True)
 
 #######################
 # PTMCMCSampler Setup #
