@@ -118,6 +118,7 @@ def ts_model_builder(target_prior_path,
 
     with open(pulsar_dists_path, 'rb') as f:
         psrdists = pickle.load(f)
+    signal_collections = []
     # Adding individual cws so we can set pulsar distances
     for psr in psrs:
         # Set pulsar distance parameter
@@ -145,11 +146,11 @@ def ts_model_builder(target_prior_path,
                          scale_shift_pdists=False)  # Bjorn's toggle to fix pulsar distances
 
         cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
-        s += cw
+        signal_collection = s + cw
+        signal_collections += signal_collection(psr)
 
     # Instantiate signal collection
-    model = [s(psr) for psr in psrs]
-    pta = signal_base.PTA(model)
+    pta = signal_base.PTA(signal_collections)
 
     # Set white noise parameters
     with open(noisedict_path, 'r') as fp:
