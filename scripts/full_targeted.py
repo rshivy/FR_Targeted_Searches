@@ -42,7 +42,7 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 # Setup Output #
 ################
 
-outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_narrowfgw' + args.output_suffix
+outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_narrowfgw'
 if args.output_suffix is not None:
     outputdir += '_' + args.output_suffix
 if not os.path.exists(outputdir):
