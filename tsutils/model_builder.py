@@ -147,7 +147,8 @@ def ts_model_builder(target_prior_path,
 
         cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
         signal_collection = s + cw
-        signal_collections += signal_collection(psr)
+        print(type(signal_collection))
+        signal_collections += [signal_collection(psr)]
 
     # Instantiate signal collection
     pta = signal_base.PTA(signal_collections)
