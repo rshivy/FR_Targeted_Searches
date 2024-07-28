@@ -25,7 +25,10 @@ size = comm.Get_size()
 ###########
 
 parser = argparse.ArgumentParser()
+
 parser.add_argument('-o', '--out', action='store', type=str, dest='output_suffix')
+parser.add_argument('-t', '--target', action='store', type=str, dest='target_index')
+
 args = parser.parse_args()
 
 
@@ -33,7 +36,10 @@ args = parser.parse_args()
 # Data Sources #
 ################
 
-target_prior_path = 'Target_Priors/001_MCG_5-40-026.json'
+with open('Target_Priors/target_index.json', 'r') as f:
+    target_prior_fname = json.load(f)[args.target_index]
+    target_prior_path = 'Target_Priors/' + target_prior_fname
+    target_name = target_prior_fname[:-5]
 psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 noisedict_path = 'noise_dicts/15yr_wn_dict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
@@ -42,11 +48,25 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 # Setup Output #
 ################
 
-outputdir = 'data/chains/ng15_v1p1/001_MCG_5-40-026_det_narrowfgw'
+outputdir = 'data/chains/ng15_v1p1/' + target_name + '_det_narrowfgw'
 if args.output_suffix is not None:
     outputdir += '_' + args.output_suffix
 if not os.path.exists(outputdir):
     os.mkdir(outputdir)
+
+if size > 1:
+    chainpath = outputdir + '/chain_1.0.txt'
+else:
+    chainpath = outputdir + '/chain_1.txt'
+
+n_samples = 0
+resume=False
+if os.path.exists(chainpath):
+    with open(chainpath, 'r') as f:
+        n_samples = len(f.readlines())
+if n_samples >= 100:
+    print(f'Continuing from n={n_samples} samples')
+    resume = True
 
 ##########################
 # Setup Enterprise Model #
@@ -81,7 +101,7 @@ sampler = Ptmcmc(ndim=ndim,
                  cov=cov,
                  groups=groups,
                  outDir=outputdir,
-                 resume=False)
+                 resume=resume)
 
 # Create and add jump proposals
 jp = JumpProposal(pta)
