@@ -76,7 +76,7 @@ pta = ts_model_builder(target_prior_path=target_prior_path,
                        noisedict_path=noisedict_path,
                        pulsar_dists_path=psrdists_path,
                        exclude_pulsars=None,
-                       vary_fgw=True)
+                       vary_fgw='narrow')
 
 #######################
 # PTMCMCSampler Setup #

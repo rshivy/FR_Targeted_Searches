@@ -23,7 +23,7 @@ def ts_model_builder(target_prior_path,
                      noisedict_path,
                      pulsar_dists_path,
                      exclude_pulsars=None,
-                     vary_fgw=True):
+                     vary_fgw='narrow'):
     """
     Builds a PTA object according to my usual targeted search model choices
 
@@ -32,7 +32,7 @@ def ts_model_builder(target_prior_path,
     :param noisedict_path: Path to a json file containing noise parameter valus
     :param pulsar_dists_path: Path to a pkl containing a dict of pulsar distance parameter values
     :param exclude_pulsars: A list of pulsar names to not use, default is None
-    :param vary_fgw: False uses target prior value, True is log uniform +/- log10(6)
+    :param vary_fgw: Options are {'constant', 'narrow', and 'full'} narrow is log uniform on target value +/- log10(6)
     """
     #####################
     # Set Target Priors #
@@ -76,13 +76,18 @@ def ts_model_builder(target_prior_path,
     cos_gwtheta = parameter.Constant(val=target_cos_theta)('cos_gwtheta')  # position of source
     gwphi = parameter.Constant(val=target_phi)('gwphi')  # position of source
     log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # sistance to source
-    if vary_fgw:  # Allow gw frequency to vary by a factor of six in either direction
+    if vary_fgw == 'narrow':  # Allow gw frequency to vary by a factor of six in either direction
         target_log10_freq_low = target_log10_freq - np.log10(6)
         target_log10_freq_high = target_log10_freq + np.log10(6)
         log10_fgw = parameter.Uniform(pmin=target_log10_freq_low,
                                       pmax=target_log10_freq_high)('log10_fgw')
-    else:
+    elif vary_fgw == 'full':
+        log10_fgw = parameter.Uniform(pmin=np.log10(1/tspan), pmax=-7)('log10_fgw')
+    elif vary_fgw == 'constant':
         log10_fgw = parameter.Constant(val=target_log10_freq)('log10_fgw')
+    else:
+        raise ValueError(f'Unknown value for vary_fgw: {vary_fgw}.'
+                         'options are {\'constant\', \'narrow\', \'full\'}')
 
     log10_mc = parameter.Uniform(8, 11)('log10_mc')  # chirp mass of binary
     phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
