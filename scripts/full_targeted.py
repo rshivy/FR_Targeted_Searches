@@ -31,7 +31,6 @@ parser.add_argument('-t', '--target', action='store', type=str, dest='target_ind
 
 args = parser.parse_args()
 
-
 ################
 # Data Sources #
 ################
@@ -51,7 +50,7 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 outputdir = 'data/chains/ng15_v1p1/' + target_name + '_det_narrowfgw'
 if args.output_suffix is not None:
     outputdir += '_' + args.output_suffix
-if not os.path.exists(outputdir):
+if not os.path.exists(outputdir) and rank == 0:
     os.mkdir(outputdir)
 
 if size > 1:
@@ -60,7 +59,7 @@ else:
     chainpath = outputdir + '/chain_1.txt'
 
 n_samples = 0
-resume=False
+resume = False
 if os.path.exists(chainpath):
     with open(chainpath, 'r') as f:
         n_samples = len(f.readlines())
