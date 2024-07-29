@@ -170,4 +170,5 @@ sampler.sample(p0=x0,
                Niter=N,
                SCAMweight=40,
                AMweight=25,
-               DEweight=25)
+               DEweight=25,
+               writeHotChains=True)
