@@ -139,9 +139,9 @@ if rank == 0:
     # Also save the constant parameters
 
     constant_params = set()
-    for signal_collection in pta._signalcollections:
-        for signal in signal_collection._signals:
-            for param_name, param in signal._params.items():
+    for signal_collection in pta.pulsarmodels:
+        for signal in signal_collection.signals:
+            for param_name, param in signal._params.items():  # The public attribute only returns nonconstant params
                 if isinstance(param, parameter.ConstantParameter):
                     constant_params.add(param)
     constant_params = {cp.name: cp.value if isinstance(cp.value, (np.float64, float))

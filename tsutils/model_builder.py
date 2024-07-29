@@ -15,6 +15,8 @@ from enterprise.signals import signal_base, utils
 from targeted_cws_ng15.Dists_Parameters import PXDistParameter
 from QuickCW.PulsarDistPriors import DMDistParameter
 
+import matplotlib.pyplot as plt
+
 
 def ts_model_builder(target_prior_path,
                      pulsar_path,
@@ -158,6 +160,45 @@ def ts_model_builder(target_prior_path,
     pta.set_default_params(noise_params)
 
     return pta
+
+
+def model_visualizer(pta):
+    fig, ax = plt.subplots()
+    ax.set_axis_off()
+
+    pulsars = pta.pulsarmodels
+    pulsars = pulsars[:2]
+
+    for i, psr in enumerate(pulsars):
+        draw_pulsar(psr, ax, (i, 0))
+    plt.show()
+
+
+def draw_pulsar(psr, ax, root_loc):
+    x0 = root_loc[0]
+    y0 = root_loc[1]
+    psrbox = plt.Rectangle((x0, y0),
+                           1, 1,
+                           ec='black', fc='None',
+                           linewidth=1)
+    psrlabel = plt.Text(x0 + 0.05, y0 + 0.95, psr.psrname,
+                        verticalalignment='top', horizontalalignment='left')
+
+    ax.add_artist(psrbox)
+    ax.add_artist(psrlabel)
+    for i, signal in enumerate(psr.signals):
+        draw_signal(signal, ax, (x0 + 0.05, y0 + 0.75 - (i * 0.1)))
+
+
+def draw_signal(signal, ax, root_loc):
+    x0 = root_loc[0]
+    y0 = root_loc[1]
+    signalbox = plt.Rectangle((x0, y0), 0.9, 0.1)
+    signallabel = plt.Text(x0, y0 + 0.05, signal.name,
+                           verticalalignment='center', horizontalalignment='left')
+
+    ax.add_artist(signalbox)
+    ax.add_artist(signallabel)
 
 
 if __name__ == '__main__':
