@@ -8,6 +8,7 @@ import argparse
 
 from enterprise_extensions.sampler import get_parameter_groups, save_runtime_info  # , JumpProposal
 from targeted_cws_ng15.jump_proposal import JumpProposal
+import targeted_cws_ng15.Dists_Parameters as dists
 import enterprise.signals.parameter as parameter
 
 from PTMCMCSampler.PTMCMCSampler import PTSampler as Ptmcmc
@@ -19,6 +20,7 @@ from tsutils.model_builder import ts_model_builder
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
 size = comm.Get_size()
+
 
 ###########
 # Options #
@@ -118,6 +120,13 @@ sampler.addProposalToCycle(jp.draw_from_prior, 10)
 sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']), 10)
 sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']), 5)
 sampler.addProposalToCycle(jp.draw_from_gwb_log_uniform_distribution, 5)
+
+jpCW = dists.JumpProposalCW(pta)
+sampler.addProposalToCycle(jpCW.phase_psi_reverse_jump, 1)
+
+pdist_pars = [p for p in pta.param_names if 'p_dist' in p]
+sampler.addProposalToCycle(jpCW.draw_from_many_par_prior(pdist_pars, 'p_dist'), 30)
+sampler.addAuxilaryJump(jpCW.fix_cyclic_pars)
 
 ###################################
 # Save everything before starting #
