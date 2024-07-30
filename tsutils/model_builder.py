@@ -219,4 +219,4 @@ if __name__ == '__main__':
                                noisedict_path=noisedict_path_def,
                                pulsar_dists_path=pulsar_dists_path_def,
                                exclude_pulsars=exclude_pulsars_def,
-                               vary_fgw=True)
+                               vary_fgw='narrow')
