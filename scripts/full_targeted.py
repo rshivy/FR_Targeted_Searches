@@ -24,10 +24,17 @@ size = comm.Get_size()
 # Options #
 ###########
 
+
+def index_format(str_in):
+    int_ind = int(str_in)
+    index = f'{int_ind:03d}'
+    return index
+
+
 parser = argparse.ArgumentParser()
 
 parser.add_argument('-o', '--out', action='store', type=str, dest='output_suffix')
-parser.add_argument('-t', '--target', action='store', type=str, dest='target_index')
+parser.add_argument('-t', '--target', action='store', type=index_format, dest='target_index')
 
 args = parser.parse_args()
 

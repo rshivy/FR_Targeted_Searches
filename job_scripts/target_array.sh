@@ -1,19 +1,17 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=targets1-24
-#SBATCH --time=1-00:00:00
-#SBATCH --partition=scavenge
-#SBATCH --array=1-24
-#SBATCH --output=logs/targeted/%a.txt
-#SBATCH --error=logs/error/targeted/%a.txt
-#SBATCH --ntasks=4
+#SBATCH --job-name=t%3a
+#SBATCH --time=3-00:00:00
+#SBATCH --partition=pi_mingarelli
+#SBATCH --array=3,5,7,11,13,15,17,19,21
+#SBATCH --output=logs/target_%3a_det_narrowfgw.txt
+#SBATCH --error=logs/error/target_%3a_det_narrowfgw.txt
+#SBATCH --ntasks=1
 #SBATCH --cpus-per-task=1
 #SBATCH --mem-per-cpu=10G
-#SBATCH --mail-type=END
-#SBATCH --mail-user=forrest.hutchison@yale.edu
 
 module load miniconda
 module load OpenMPI
-conda activate targeted # name of your conda environment
+conda activate targeted
 
 export PYTHONPATH=$(pwd):$PATH
-mpirun -n 4 python scripts/simple_targeted_search.py -t $SLURM_ARRAY_TASK_ID
+python scripts/full_targeted.py -t $SLURM_ARRAY_TASK_ID
