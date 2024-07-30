@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=t%3a
+#SBATCH --job-name=t3-21
 #SBATCH --time=3-00:00:00
 #SBATCH --partition=pi_mingarelli
 #SBATCH --array=3,5,7,11,13,15,17,19,21
