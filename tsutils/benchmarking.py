@@ -15,20 +15,11 @@ if __name__ == '__main__':
                            pulsar_dists_path=psrdists_path,
                            exclude_pulsars=None,
                            vary_fgw='narrow')
-    print('Sampling')
-    t1 = time.perf_counter()
-    x = np.hstack([p.sample() for p in pta.params])
-    t2 = time.perf_counter()
-    print(f'Sampled in {t2 - t1:0.4f} seconds\n')
-
-    print('Evaluating prior')
-    t1 = time.perf_counter()
-    pta.get_lnprior(x)
-    t2 = time.perf_counter()
-    print(f'Prior evaluated in {t2 - t1:0.4f} seconds\n')
 
     print('Evaluating likelihood')
-    t1 = time.perf_counter()
-    pta.get_lnlikelihood(x)
-    t2 = time.perf_counter()
-    print(f'Likelihood evaluated in {t2 - t1:0.4f} seconds')
+    for _ in range(10):
+        x = np.hstack([p.sample() for p in pta.params])
+        t1 = time.perf_counter()
+        pta.get_lnlikelihood(x)
+        t2 = time.perf_counter()
+        print(f'Likelihood evaluated in {t2 - t1:0.4f} seconds')
