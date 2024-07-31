@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=t3-21
+#SBATCH --job-name=t1-21
 #SBATCH --time=3-00:00:00
 #SBATCH --partition=pi_mingarelli
-#SBATCH --array=3,5,7,11,13,15,17,19,21
+#SBATCH --array=1,3,5,7,11,13,15,17,19,21
 #SBATCH --output=logs/target_%3a_det_narrowfgw.txt
 #SBATCH --error=logs/error/target_%3a_det_narrowfgw.txt
 #SBATCH --ntasks=1

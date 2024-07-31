@@ -125,7 +125,9 @@ jpCW = dists.JumpProposalCW(pta)
 sampler.addProposalToCycle(jpCW.phase_psi_reverse_jump, 1)
 
 pdist_pars = [p for p in pta.param_names if 'p_dist' in p]
+pphase_pars = [p for p in pta.param_names if 'p_phase' in p]
 sampler.addProposalToCycle(jpCW.draw_from_many_par_prior(pdist_pars, 'p_dist'), 30)
+sampler.addProposalToCycle(jpCW.draw_from_many_par_prior(pphase_pars, 'p_phase'), 30)
 sampler.addAuxilaryJump(jpCW.fix_cyclic_pars)
 
 ###################################

@@ -49,7 +49,7 @@ def ts_model_builder(target_prior_path,
     target_coords = SkyCoord(target_ra, target_dec)
     target_coords.representation_type = 'physicsspherical'
     target_cos_theta = np.cos(target_coords.theta.to(u.rad))
-    target_phi = target_coords.phi.to(u.rad)
+    target_phi = target_coords.phi.to(u.rad).value
 
     ################
     # Load Pulsars #
@@ -75,7 +75,7 @@ def ts_model_builder(target_prior_path,
     # CW parameters
     cos_gwtheta = parameter.Constant(val=target_cos_theta)('cos_gwtheta')  # position of source
     gwphi = parameter.Constant(val=target_phi)('gwphi')  # position of source
-    log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # sistance to source
+    log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # distance to source
     if vary_fgw == 'narrow':  # Allow gw frequency to vary by a factor of six in either direction
         target_log10_freq_low = target_log10_freq - np.log10(6)
         target_log10_freq_high = target_log10_freq + np.log10(6)
@@ -111,7 +111,7 @@ def ts_model_builder(target_prior_path,
     gamma = parameter.Uniform(0, 7)
 
     pl = utils.powerlaw(log10_A=log10_A, gamma=gamma)
-    rn = gp_signals.FourierBasisGP(pl, components=30, Tspan=tspan, selection=backend)
+    rn = gp_signals.FourierBasisGP(pl, components=30, Tspan=tspan)
 
     # Common red noise
     log10_A_crn = parameter.Uniform(-18, -11)('crn_log10_A')
@@ -125,6 +125,7 @@ def ts_model_builder(target_prior_path,
 
     with open(pulsar_dists_path, 'rb') as f:
         psrdists = pickle.load(f)
+    p_phase = parameter.Uniform(0, 2 * np.pi)
     signal_collections = []
     # Adding individual cws so we can set pulsar distances
     for psr in psrs:
@@ -150,6 +151,7 @@ def ts_model_builder(target_prior_path,
                          evolve=True,
                          psrTerm=True,
                          p_dist=p_dist,
+                         p_phase=p_phase,
                          scale_shift_pdists=False)  # Bjorn's toggle to fix pulsar distances
 
         cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
