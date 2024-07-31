@@ -23,7 +23,8 @@ def ts_model_builder(target_prior_path,
                      noisedict_path,
                      pulsar_dists_path,
                      exclude_pulsars=None,
-                     vary_fgw='narrow'):
+                     vary_fgw='narrow',
+                     mass_prior='detection'):
     """
     Builds a PTA object according to my usual targeted search model choices
 
@@ -33,6 +34,7 @@ def ts_model_builder(target_prior_path,
     :param pulsar_dists_path: Path to a pkl containing a dict of pulsar distance parameter values
     :param exclude_pulsars: A list of pulsar names to not use, default is None
     :param vary_fgw: Options are {'constant', 'narrow', and 'full'} narrow is log uniform on target value +/- log10(6)
+    :param mass_prior: Options are {'detection', 'upper_limit'} corresponding to log uniform and uniform respectively
     """
     #####################
     # Set Target Priors #
@@ -88,8 +90,13 @@ def ts_model_builder(target_prior_path,
     else:
         raise ValueError(f'Unknown value for vary_fgw: {vary_fgw}.'
                          'options are {\'constant\', \'narrow\', \'full\'}')
-
-    log10_mc = parameter.Uniform(8, 11)('log10_mc')  # chirp mass of binary
+    if mass_prior == 'detection':
+        log10_mc = parameter.Uniform(8, 11)('log10_mc')  # chirp mass of binary
+    elif mass_prior == 'upper_limit':
+        log10_mc = parameter.LinearExp(8, 11)('log10_mc')
+    else:
+        raise ValueError(f'Unknown value for mass_prior: {mass_prior}.'
+                         'options are {\'detection\', \'upper_limit\'}')
     phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
     psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
     cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth

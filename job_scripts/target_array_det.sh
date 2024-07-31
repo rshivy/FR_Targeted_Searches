@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=t1-21
+#SBATCH --job-name=t1-21-det
 #SBATCH --time=3-00:00:00
 #SBATCH --partition=pi_mingarelli
 #SBATCH --array=1,3,5,7,11,13,15,17,19,21
@@ -14,4 +14,4 @@ module load OpenMPI
 conda activate targeted
 
 export PYTHONPATH=$(pwd):$PATH
-python scripts/full_targeted.py -t $SLURM_ARRAY_TASK_ID
+python scripts/full_targeted.py -t $SLURM_ARRAY_TASK_ID --detection -f narrow
