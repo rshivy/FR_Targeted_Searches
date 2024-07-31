@@ -14,4 +14,4 @@ module load OpenMPI
 conda activate targeted
 
 export PYTHONPATH=$(pwd):$PYTHONPATH
-python scripts/full_targeted.py -t 001 --upper-limit -f narrow
+python scripts/full_targeted.py -t 001 -m upper-limit -f narrow

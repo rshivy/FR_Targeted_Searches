@@ -14,4 +14,4 @@ module load OpenMPI
 conda activate targeted
 
 export PYTHONPATH=$(pwd):$PYTHONPATH
-python scripts/full_targeted.py -t 001 --detection -f narrow
+python scripts/full_targeted.py -t 001 -m detection -f narrow
