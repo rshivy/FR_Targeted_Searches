@@ -37,12 +37,9 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-o', '--out', action='store', type=str, dest='output_suffix')
 parser.add_argument('-t', '--target', action='store', type=index_format, dest='target_index')
-
-mass_prior = parser.add_mutually_exclusive_group(required=True)
-mass_prior.add_argument('-u', '--upper-limit', action='store_true', dest='upper_limit')
-mass_prior.add_argument('-d', '--detection', action='store_true', dest='detection')
-
-parser.add_argument('-f', '--frequency-prior', action='store', type=str, dest='frequency_prior',
+parser.add_argument('-m', '--mass-prior', action='store', dest='mass_prior',
+                    choices=['upper-limit', 'detection'], required=True)
+parser.add_argument('-f', '--frequency-prior', action='store', dest='frequency_prior',
                     choices=['constant', 'narrow', 'full'], default='narrow')
 
 args = parser.parse_args()
@@ -65,9 +62,9 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 
 outputdir = 'data/chains/ng15_v1p1/' + target_name
 
-if args.detection:
+if args.mass_prior == 'detection':
     outputdir += '_det'
-elif args.upper_limit:
+elif args.mass_prior == 'upper-limit':
     outputdir += '_ul'
 
 if args.frequency_prior == 'narrow':
