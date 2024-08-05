@@ -91,9 +91,9 @@ def ts_model_builder(target_prior_path,
         raise ValueError(f'Unknown value for vary_fgw: {vary_fgw}.'
                          'options are {\'constant\', \'narrow\', \'full\'}')
     if mass_prior == 'detection':
-        log10_mc = parameter.Uniform(8, 11)('log10_mc')  # chirp mass of binary
+        log10_mc = parameter.Uniform(7, 10)('log10_mc')  # chirp mass of binary
     elif mass_prior == 'upper-limit':
-        log10_mc = parameter.LinearExp(8, 11)('log10_mc')
+        log10_mc = parameter.LinearExp(7, 10)('log10_mc')
     else:
         raise ValueError(f'Unknown value for mass_prior: {mass_prior}.'
                          'options are {\'detection\', \'upper-limit\'}')

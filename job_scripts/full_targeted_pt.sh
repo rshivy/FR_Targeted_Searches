@@ -2,8 +2,8 @@
 #SBATCH --job-name=t001pt
 #SBATCH --time=3-00:00:00
 #SBATCH --partition=pi_mingarelli
-#SBATCH --output=logs/target_001_det_narrowfgw_pt_s.txt
-#SBATCH --error=logs/error/target_001_det_narrowfgw_pt_s.txt
+#SBATCH --output=logs/target_001_det_narrowfgw_pt_v2.txt
+#SBATCH --error=logs/error/target_001_det_narrowfgw_pt_v2.txt
 #SBATCH --cpus-per-task=1
 #SBATCH --ntasks=8
 #SBATCH --nodes=1
@@ -14,4 +14,4 @@ module load OpenMPI
 conda activate targeted
 
 export PYTHONPATH=$(pwd):$PYTHONPATH
-srun -n 8 python scripts/full_targeted.py -o pt_s -t 001
+srun -n 8 python scripts/full_targeted.py -o pt_v2 -t 001 -m detection -f narrow

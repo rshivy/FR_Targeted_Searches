@@ -6,7 +6,7 @@ import os
 import json
 import argparse
 
-from enterprise_extensions.sampler import get_parameter_groups, save_runtime_info  # , JumpProposal
+from enterprise_extensions.sampler import get_parameter_groups, get_cw_groups, group_from_params, save_runtime_info
 from targeted_cws_ng15.jump_proposal import JumpProposal
 import targeted_cws_ng15.Dists_Parameters as dists
 import enterprise.signals.parameter as parameter
@@ -116,7 +116,8 @@ ndim = len(x0)
 cov = np.diag(np.ones(ndim) * 0.1 ** 2)
 
 # Get parameter groups
-groups = get_parameter_groups(pta)
+crn_params = ['crn_log10_A', 'gamma_crn']
+groups = get_parameter_groups(pta) + get_cw_groups(pta) + group_from_params(pta, crn_params)
 
 # Intialize sampler
 sampler = Ptmcmc(ndim=ndim,
