@@ -117,7 +117,7 @@ cov = np.diag(np.ones(ndim) * 0.1 ** 2)
 
 # Get parameter groups
 crn_params = ['crn_log10_A', 'gamma_crn']
-groups = get_parameter_groups(pta) + get_cw_groups(pta) + group_from_params(pta, crn_params)
+groups = get_parameter_groups(pta) + get_cw_groups(pta) + [group_from_params(pta, crn_params)]
 
 # Intialize sampler
 sampler = Ptmcmc(ndim=ndim,
