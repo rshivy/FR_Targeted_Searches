@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=t001pt
+#SBATCH --job-name=t001pt-det
 #SBATCH --time=3-00:00:00
 #SBATCH --partition=pi_mingarelli
 #SBATCH --output=logs/target_001_det_narrowfgw_pt_v2.txt
