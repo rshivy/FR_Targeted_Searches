@@ -6,7 +6,4 @@ __pycache__
 data/
 logs/
 
-dsq-jobfile.sh
-joblist.txt
-
 /scripts/local/
