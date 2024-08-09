@@ -8,7 +8,7 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --ntasks=8
 #SBATCH --nodes=1
-#SBATCH --mem-per-cpu=10G
+#SBATCH --mem-per-cpu=6G
 
 module load miniconda
 module load OpenMPI
