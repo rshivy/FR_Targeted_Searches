@@ -33,7 +33,7 @@ def ts_model_builder(target_prior_path,
     :param noisedict_path: Path to a json file containing noise parameter valus
     :param pulsar_dists_path: Path to a pkl containing a dict of pulsar distance parameter values
     :param exclude_pulsars: A list of pulsar names to not use, default is None
-    :param vary_fgw: Options are {'constant', 'narrow', and 'full'} narrow is log uniform on target value +/- log10(6)
+    :param vary_fgw: Options are {'constant', 'narrow', and 'full'} narrow is log uniform (1,6)*EM freq
     :param mass_prior: Options are {'detection', 'upper_limit'} corresponding to log uniform and uniform respectively
     """
     #####################
@@ -79,8 +79,8 @@ def ts_model_builder(target_prior_path,
     gwphi = parameter.Constant(val=target_phi)('gwphi')  # position of source
     log10_dist = parameter.Constant(val=target_log10_dist)('log10_dist')  # distance to source
     if vary_fgw == 'narrow':  # Allow gw frequency to vary by a factor of six in either direction
-        target_log10_freq_low = target_log10_freq - np.log10(6)
-        target_log10_freq_high = target_log10_freq + np.log10(6)
+        target_log10_freq_low = target_log10_freq - np.log10(2)
+        target_log10_freq_high = target_log10_freq + np.log10(3)
         log10_fgw = parameter.Uniform(pmin=target_log10_freq_low,
                                       pmax=target_log10_freq_high)('log10_fgw')
     elif vary_fgw == 'full':
@@ -91,9 +91,9 @@ def ts_model_builder(target_prior_path,
         raise ValueError(f'Unknown value for vary_fgw: {vary_fgw}.'
                          'options are {\'constant\', \'narrow\', \'full\'}')
     if mass_prior == 'detection':
-        log10_mc = parameter.Uniform(7, 10)('log10_mc')  # chirp mass of binary
+        log10_mc = parameter.Uniform(7, 11)('log10_mc')  # chirp mass of binary
     elif mass_prior == 'upper-limit':
-        log10_mc = parameter.LinearExp(7, 10)('log10_mc')
+        log10_mc = parameter.LinearExp(7, 12)('log10_mc')
     else:
         raise ValueError(f'Unknown value for mass_prior: {mass_prior}.'
                          'options are {\'detection\', \'upper-limit\'}')

@@ -15,4 +15,4 @@ module load OpenMPI
 conda activate targeted
 
 export PYTHONPATH=$(pwd):$PATH
-srun -n 8 python scripts/full_targeted.py -t $SLURM_ARRAY_TASK_ID -m upper-limit -f narrow -o pt_v2
+srun -n 8 python scripts/full_targeted.py -t $SLURM_ARRAY_TASK_ID -m upper-limit -f narrow -o pt_v3
