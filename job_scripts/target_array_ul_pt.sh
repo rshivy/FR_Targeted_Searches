@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-#SBATCH --job-name=t1-21-ul-pt
+#SBATCH --job-name=v3-ul
 #SBATCH --time=3-00:00:00
 #SBATCH --partition=pi_mingarelli
 #SBATCH --array=1,3,5,7,11,13,15,17,19,21

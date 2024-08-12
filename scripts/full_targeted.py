@@ -143,7 +143,8 @@ sampler.addProposalToCycle(jp.draw_from_red_prior, 30)
 sampler.addProposalToCycle(jp.draw_from_cw_prior, 20)
 sampler.addProposalToCycle(jp.draw_from_prior, 10)
 
-sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']), 10)
+if args.frequency_prior != 'constant':
+    sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']), 10)
 sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']), 5)
 sampler.addProposalToCycle(jp.draw_from_gwb_log_uniform_distribution, 5)
 
