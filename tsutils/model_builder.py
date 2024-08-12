@@ -24,7 +24,7 @@ def set_cw_params(target_prior_path, mass_prior, freq_prior, tspan):
 
     cos_gwtheta = parameter.Constant(val=target_priors['cos_theta'])('cos_gwtheta')  # position of source
     gwphi = parameter.Constant(val=target_priors['phi'])('gwphi')  # position of source
-    log10_dist = parameter.Constant(val=target_priors['log10_disst'])('log10_dist')  # distance to source
+    log10_dist = parameter.Constant(val=target_priors['log10_dist'])('log10_dist')  # distance to source
     if freq_prior == 'narrow':  # Allow gw frequency to vary by a factor of six in either direction
         target_log10_freq_low = target_priors['log10_freq'] - np.log10(2)
         target_log10_freq_high = target_priors['log10_freq'] + np.log10(3)
