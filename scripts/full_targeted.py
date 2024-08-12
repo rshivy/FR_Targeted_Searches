@@ -15,7 +15,7 @@ from PTMCMCSampler.PTMCMCSampler import PTSampler as Ptmcmc
 
 from mpi4py import MPI
 
-from tsutils.model_builder import ts_model_builder
+from tsutils.model_builder import ts_model_builder, ts_broken_powerlaw
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()
@@ -41,6 +41,7 @@ parser.add_argument('-m', '--mass-prior', action='store', dest='mass_prior',
                     choices=['upper-limit', 'detection'], required=True)
 parser.add_argument('-f', '--frequency-prior', action='store', dest='frequency_prior',
                     choices=['constant', 'narrow', 'full'], default='narrow')
+parser.add_argument('-b' '--broken-powerlaw', action='store_true', dest='broken_powerlaw')
 
 args = parser.parse_args()
 
@@ -94,14 +95,22 @@ if n_samples >= 100:
 ##########################
 # Setup Enterprise Model #
 ##########################
-
-pta = ts_model_builder(target_prior_path=target_prior_path,
-                       pulsar_path=psrpath,
-                       noisedict_path=noisedict_path,
-                       pulsar_dists_path=psrdists_path,
-                       exclude_pulsars=None,
-                       vary_fgw=args.frequency_prior,
-                       mass_prior=args.mass_prior)
+if args.broken_powerlaw:
+    pta = ts_broken_powerlaw(target_prior_path=target_prior_path,
+                             pulsar_path=psrpath,
+                             noisedict_path=noisedict_path,
+                             pulsar_dists_path=psrdists_path,
+                             exclude_pulsars=None,
+                             vary_fgw=args.frequency_prior,
+                             mass_prior=args.mass_prior)
+else:
+    pta = ts_model_builder(target_prior_path=target_prior_path,
+                           pulsar_path=psrpath,
+                           noisedict_path=noisedict_path,
+                           pulsar_dists_path=psrdists_path,
+                           exclude_pulsars=None,
+                           vary_fgw=args.frequency_prior,
+                           mass_prior=args.mass_prior)
 
 #######################
 # PTMCMCSampler Setup #
