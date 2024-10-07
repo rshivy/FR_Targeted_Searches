@@ -72,6 +72,8 @@ if args.frequency_prior == 'narrow':
     outputdir += '_narrowfgw'
 elif args.frequency_prior == 'full':
     outputdir += '_varyfgw'
+elif args.frequency_prior == 'constant':
+    outputdir += '_cfgw'
 
 if args.output_suffix is not None:
     outputdir += '_' + args.output_suffix
