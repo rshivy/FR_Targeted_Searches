@@ -16,6 +16,7 @@ from PTMCMCSampler.PTMCMCSampler import PTSampler as Ptmcmc
 from mpi4py import MPI
 
 from tsutils.model_builder import ts_model_builder, ts_broken_powerlaw
+from tsutils.utils import get_cw_groups
 
 comm = MPI.COMM_WORLD
 rank = comm.Get_rank()

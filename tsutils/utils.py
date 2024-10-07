@@ -1,5 +1,6 @@
 import numpy as np
 from astropy.constants import c, G, M_sun, pc
+from enterprise_extensions.sampler import group_from_params
 
 
 def cg1_mass(solarmass_mass):  # Convert mass from solar mass to seconds
@@ -55,3 +56,19 @@ def load_priors(path_to_chain_dir):
             pass
         priors[pname] = {'type': ptype, 'arg1': parg1, 'arg2': parg2}
     return priors
+
+
+def get_cw_groups(pta):
+    """Utility function to get parameter groups for CW sampling.
+    These groups should be appended to the usual get_parameter_groups()
+    output. * edited to follow my parameter naming
+    """
+    ang_pars = ['cos_gwtheta', 'gwphi', 'cos_inc', 'phase0', 'psi']
+    mfdh_pars = ['log10_mc', 'log10_fgw', 'log10_dist', 'log10_h']
+    freq_pars = ['log10_mc', 'log10_fgw', 'p_dist', 'p_phase']
+
+    groups = []
+    for pars in [ang_pars, mfdh_pars, freq_pars]:
+        groups.append(group_from_params(pta, pars))
+
+    return groups
