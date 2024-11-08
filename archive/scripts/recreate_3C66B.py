@@ -117,11 +117,11 @@ efeq = white_signals.MeasurementNoise(efac=efac,
 ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr,
                                     selection=backend_ng)
 
+# Red Noise
 log10_A = parameter.Uniform(-20, -11)
 gamma = parameter.Uniform(0, 7)
 
 pl = utils.powerlaw(log10_A=log10_A, gamma=gamma)
-
 rn = gp_signals.FourierBasisGP(pl, components=30, Tspan=Tspan, selection=backend)
 
 s = cw + efeq + ec + rn
@@ -159,10 +159,10 @@ cov = np.diag(np.ones(ndim) * 0.1 ** 2)
 groups = get_parameter_groups(pta)
 
 # Intialize sampler
-sampler = Ptmcmc(ndim,
-                 pta.get_lnlikelihood,
-                 pta.get_lnprior,
-                 cov,
+sampler = Ptmcmc(ndim=ndim,
+                 logl=pta.get_lnlikelihood,
+                 logp=pta.get_lnprior,
+                 cov=cov,
                  groups=groups,
                  outDir=outputdir,
                  resume=False)
@@ -217,7 +217,7 @@ if rank == 0:
     with open(constant_priorpath, 'w') as f:
         json.dump(constant_params, f, indent=4)
 
-    save_runtime_info(pta,
+    save_runtime_info(pta=pta,
                       outdir=outputdir,
                       human='Forrest H')
 
@@ -226,8 +226,8 @@ if rank == 0:
 #########
 
 N = 10_000_000
-sampler.sample(x0,
-               N,
+sampler.sample(p0=x0,
+               Niter=N,
                SCAMweight=40,
                AMweight=20,
                DEweight=20)

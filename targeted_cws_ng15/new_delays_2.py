@@ -86,7 +86,7 @@ def cw_delay_new(toas, pos, pdist,
                  phase0=0, psi=0,
                  psrTerm=False, p_dist=1, p_phase=None,
                  evolve=False, phase_approx=False, check=False,
-                 tref=0):
+                 tref=0, scale_shift_pdists=True):
     """
     Function to create GW incuced residuals from a SMBMB as
     defined in Ellis et. al 2012,2013.
@@ -131,39 +131,46 @@ def cw_delay_new(toas, pos, pdist,
         Check if frequency evolves significantly over obs. time [boolean]
     :param tref:
         Reference time for phase and frequency [s]
+    :param scale_shift_pdists:
+        Toggle to scale and shift input p_dist param by distances in
+        enterprise pulsar. False to just use the input p_dist param directly.
+        Default True [boolean]
     :return: Vector of induced residuals
     """
     # convert units to time
-    mc = 10**log10_mc * const.Tsun
-    fgw = 10**log10_fgw
+    mc = 10 ** log10_mc * const.Tsun
+    fgw = 10 ** log10_fgw
     gwtheta = np.arccos(cos_gwtheta)
     inc = np.arccos(cos_inc)
-    p_dist = (pdist[0] + pdist[1]*p_dist)*const.kpc/const.c
+    if scale_shift_pdists:
+        p_dist = (pdist[0] + pdist[1] * p_dist) * const.kpc / const.c
+    else:
+        p_dist = p_dist * const.kpc / const.c
 
     if log10_h is None and log10_dist is None:
         raise ValueError("one of log10_dist or log10_h must be non-None")
-    elif log10_h is not  None and log10_dist is not None:
+    elif log10_h is not None and log10_dist is not None:
         raise ValueError("only one of log10_dist or log10_h can be non-None")
     elif log10_h is None:
-        dist = 10**log10_dist * const.Mpc / const.c
+        dist = 10 ** log10_dist * const.Mpc / const.c
     else:
-        dist = 2 * mc**(5/3) * (np.pi*fgw)**(2/3) / 10**log10_h
+        dist = 2 * mc ** (5 / 3) * (np.pi * fgw) ** (2 / 3) / 10 ** log10_h
 
     if check:
         # check that frequency is not evolving significantly over obs. time
-        fstart = fgw * (1 - 256/5 * mc**(5/3) * fgw**(8/3) * toas[0])**(-3/8)
-        fend = fgw * (1 - 256/5 * mc**(5/3) * fgw**(8/3) * toas[-1])**(-3/8)
+        fstart = fgw * (1 - 256 / 5 * mc ** (5 / 3) * fgw ** (8 / 3) * toas[0]) ** (-3 / 8)
+        fend = fgw * (1 - 256 / 5 * mc ** (5 / 3) * fgw ** (8 / 3) * toas[-1]) ** (-3 / 8)
         df = fend - fstart
 
         # observation time
-        Tobs = toas.max()-toas.min()
-        fbin = 1/Tobs
+        Tobs = toas.max() - toas.min()
+        fbin = 1 / Tobs
 
         if np.abs(df) > fbin:
             print('WARNING: Frequency is evolving over more than one '
                   'frequency bin.')
             print('f0 = {0}, f1 = {1}, df = {2}, fbin = {3}'
-                  .format(fstart, fend, df,  fbin))
+                  .format(fstart, fend, df, fbin))
             return np.ones(len(toas)) * np.nan
 
     # get antenna pattern funcs and cosMu
@@ -172,65 +179,65 @@ def cw_delay_new(toas, pos, pdist,
                                                          gwphi, psi)
 
     # get pulsar time
-    
-    #toas -= tref
-    #safety! compounds can go wrong!
-    toas = toas-tref
+
+    # toas -= tref
+    # safety! compounds can go wrong!
+    toas = toas - tref
     if p_dist > 0:
-        tp = toas-p_dist*(1-cosMu)
+        tp = toas - p_dist * (1 - cosMu)
     else:
         tp = toas
 
     # orbital frequency
     w0 = np.pi * fgw
-    phase0 /= 2 # orbital phase
-    #omegadot = 96/5 * mc**(5/3) * w0**(11/3)
+    phase0 /= 2  # orbital phase
+    # omegadot = 96/5 * mc**(5/3) * w0**(11/3)
 
     # evolution
     if evolve:
         # calculate time dependent frequency at earth and pulsar
-        omega = w0 * (1 - 256/5 * mc**(5/3) * w0**(8/3) * toas)**(-3/8)
-        omega_p = w0 * (1 - 256/5 * mc**(5/3) * w0**(8/3) * tp)**(-3/8)
+        omega = w0 * (1 - 256 / 5 * mc ** (5 / 3) * w0 ** (8 / 3) * toas) ** (-3 / 8)
+        omega_p = w0 * (1 - 256 / 5 * mc ** (5 / 3) * w0 ** (8 / 3) * tp) ** (-3 / 8)
 
         if p_dist > 0:
-            omega_p0 = w0 * (1 + 256/5
-                             * mc**(5/3) * w0**(8/3) *
-                             p_dist*(1-cosMu))**(-3/8)
+            omega_p0 = w0 * (1 + 256 / 5
+                             * mc ** (5 / 3) * w0 ** (8 / 3) *
+                             p_dist * (1 - cosMu)) ** (-3 / 8)
         else:
             omega_p0 = w0
 
         # calculate time dependent phase
-        phase = phase0 + 1/32/mc**(5/3) * (w0**(-5/3) - omega**(-5/3))
+        phase = phase0 + 1 / 32 / mc ** (5 / 3) * (w0 ** (-5 / 3) - omega ** (-5 / 3))
 
         if p_phase is None:
-            phase_p = phase0 + 1/32/mc**(5/3) * (w0**(-5/3) -
-                                                 omega_p**(-5/3))
+            phase_p = phase0 + 1 / 32 / mc ** (5 / 3) * (w0 ** (-5 / 3) -
+                                                         omega_p ** (-5 / 3))
         else:
             phase_p = (phase0 + p_phase
-                       + 1/32*mc**(-5/3) * (omega_p0**(-5/3) -
-                                            omega_p**(-5/3)))
+                       + 1 / 32 * mc ** (-5 / 3) * (omega_p0 ** (-5 / 3) -
+                                                    omega_p ** (-5 / 3)))
 
     elif phase_approx:
         # monochromatic
         omega = w0
         if p_dist > 0:
-            omega_p = w0 * (1 + 256/5
-                            * mc**(5/3) * w0**(8/3) * p_dist*(1-cosMu))**(-3/8)
+            omega_p = w0 * (1 + 256 / 5
+                            * mc ** (5 / 3) * w0 ** (8 / 3) * p_dist * (1 - cosMu)) ** (-3 / 8)
         else:
             omega_p = w0
 
         # phases
         phase = phase0 + omega * toas
         if p_phase is not None:
-            phase_p = phase0 + p_phase + omega_p*toas
+            phase_p = phase0 + p_phase + omega_p * toas
         else:
-            phase_p = (phase0 + omega_p*toas
-                       + 1/32/mc**(5/3) * (w0**(-5/3) - omega_p**(-5/3)))
+            phase_p = (phase0 + omega_p * toas
+                       + 1 / 32 / mc ** (5 / 3) * (w0 ** (-5 / 3) - omega_p ** (-5 / 3)))
 
     # no evolution
     else:
         # monochromatic
-        omega = np.pi*fgw
+        omega = np.pi * fgw
         omega_p = omega
 
         # phases
@@ -238,14 +245,14 @@ def cw_delay_new(toas, pos, pdist,
         phase_p = phase0 + omega * tp
 
     # define time dependent coefficients
-    At = -0.5*np.sin(2*phase)*(3+np.cos(2*inc))
-    Bt = 2*np.cos(2*phase)*np.cos(inc)
-    At_p = -0.5*np.sin(2*phase_p)*(3+np.cos(2*inc))
-    Bt_p = 2*np.cos(2*phase_p)*np.cos(inc)
+    At = -0.5 * np.sin(2 * phase) * (3 + np.cos(2 * inc))
+    Bt = 2 * np.cos(2 * phase) * np.cos(inc)
+    At_p = -0.5 * np.sin(2 * phase_p) * (3 + np.cos(2 * inc))
+    Bt_p = 2 * np.cos(2 * phase_p) * np.cos(inc)
 
     # now define time dependent amplitudes
-    alpha = mc**(5./3.)/(dist*omega**(1./3.))
-    alpha_p = mc**(5./3.)/(dist*omega_p**(1./3.))
+    alpha = mc ** (5. / 3.) / (dist * omega ** (1. / 3.))
+    alpha_p = mc ** (5. / 3.) / (dist * omega_p ** (1. / 3.))
 
     # define rplus and rcross
     '''
@@ -255,18 +262,16 @@ def cw_delay_new(toas, pos, pdist,
     rcross_p = alpha_p*(At_p*np.sin(2*psi)+Bt_p*np.cos(2*psi))
     '''
 
-    
-    rplus = alpha*(At)
-    rcross = alpha*(-Bt)
-    rplus_p = alpha_p*(At_p)
-    rcross_p = alpha_p*(-Bt_p)
-    
+    rplus = alpha * (At)
+    rcross = alpha * (-Bt)
+    rplus_p = alpha_p * (At_p)
+    rcross_p = alpha_p * (-Bt_p)
 
     # residuals
     if psrTerm:
-        res = fplus*(rplus_p-rplus)+fcross*(rcross_p-rcross)
+        res = fplus * (rplus_p - rplus) + fcross * (rcross_p - rcross)
     else:
-        res = -fplus*rplus - fcross*rcross
+        res = -fplus * rplus - fcross * rcross
 
     return res
 

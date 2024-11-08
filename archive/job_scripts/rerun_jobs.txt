@@ -1,0 +1,15 @@
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 96
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 97
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 98
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 100
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 101
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 102
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 103
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 104
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 105
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 106
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 107
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 108
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 109
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 110
+module load miniconda OpenMPI; conda activate targeted; export PYTHONPATH=$(pwd):$PATH; mpirun -n 1 python scripts/simple_targeted_search.py -t 111
