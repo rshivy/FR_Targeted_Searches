@@ -1,3 +1,5 @@
+### The below is out of date, mostly disregard
+
 The main script here is `scripts/simple_targeted_search.py`, which is a simplified version of Bjorn's script. I commented everything I knew, 
 although there are a few things I'm still confused about.
 
