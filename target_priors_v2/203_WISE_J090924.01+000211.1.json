@@ -1,0 +1,9 @@
+{
+    "RA": "09h09m24.0099207720s",
+    "DEC": "+00d02m11.113917792s",
+    "log10_dist": 4.164808898484056,
+    "log10_freq": -7.458977538359123,
+    "log10_Mc": null,
+    "log10_Mc_sigma": null,
+    "Source": "https://arxiv.org/pdf/2412.19573"
+}
