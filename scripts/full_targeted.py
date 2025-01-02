@@ -50,9 +50,9 @@ args = parser.parse_args()
 # Data Sources #
 ################
 
-with open('Target_Priors/target_index.json', 'r') as f:
+with open('target_priors_v2/target_index.json', 'r') as f:
     target_prior_fname = json.load(f)[args.target_index]
-    target_prior_path = 'Target_Priors/' + target_prior_fname
+    target_prior_path = 'target_priors_v2/' + target_prior_fname
     target_name = target_prior_fname[:-5]
 psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
 noisedict_path = 'noise_dicts/15yr_wn_dict.json'
