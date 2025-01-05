@@ -68,7 +68,8 @@ pta = ts_model_builder(target_prior_path=target_prior_path,
                        pulsar_dists_path=psrdists_path,
                        exclude_pulsars=None,
                        vary_fgw='constant',
-                       mass_prior=args.mass_prior)
+                       mass_prior=args.mass_prior,
+                       selection=False)
 
 #######################
 # PTMCMCSampler Setup #
@@ -101,8 +102,6 @@ sampler.addProposalToCycle(jp.draw_from_red_prior, 30)
 sampler.addProposalToCycle(jp.draw_from_cw_prior, 20)
 sampler.addProposalToCycle(jp.draw_from_prior, 10)
 
-if args.frequency_prior != 'constant':
-    sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']), 10)
 sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']), 5)
 sampler.addProposalToCycle(jp.draw_from_gwb_log_uniform_distribution, 5)
 

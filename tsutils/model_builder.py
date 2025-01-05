@@ -196,7 +196,8 @@ def ts_model_builder(target_prior_path,
                      pulsar_dists_path,
                      exclude_pulsars=None,
                      vary_fgw='narrow',
-                     mass_prior='detection'):
+                     mass_prior='detection',
+                     selection=True):
     """
     Builds a PTA object according to my usual targeted search model choices
 
@@ -248,11 +249,16 @@ def ts_model_builder(target_prior_path,
     efac = parameter.Constant()
     log10_equad = parameter.Constant()
     log10_ecorr = parameter.Constant()
-    efeq = white_signals.MeasurementNoise(efac=efac,
-                                          log10_t2equad=log10_equad,
-                                          selection=backend)
-    ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr,
-                                        selection=backend_ng)
+    if selection:
+        efeq = white_signals.MeasurementNoise(efac=efac,
+                                              log10_t2equad=log10_equad,
+                                              selection=backend)
+        ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr,
+                                            selection=backend_ng)
+    else:
+        efeq = white_signals.MeasurementNoise(efac=efac,
+                                              log10_t2equad=log10_equad)
+        ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr)
 
     log10_A = parameter.Uniform(-20, -11)
     gamma = parameter.Uniform(0, 7)
