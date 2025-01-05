@@ -196,8 +196,7 @@ def ts_model_builder(target_prior_path,
                      pulsar_dists_path,
                      exclude_pulsars=None,
                      vary_fgw='narrow',
-                     mass_prior='detection',
-                     selection=True):
+                     mass_prior='detection'):
     """
     Builds a PTA object according to my usual targeted search model choices
 
@@ -249,16 +248,11 @@ def ts_model_builder(target_prior_path,
     efac = parameter.Constant()
     log10_equad = parameter.Constant()
     log10_ecorr = parameter.Constant()
-    if selection:
-        efeq = white_signals.MeasurementNoise(efac=efac,
-                                              log10_t2equad=log10_equad,
-                                              selection=backend)
-        ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr,
-                                            selection=backend_ng)
-    else:
-        efeq = white_signals.MeasurementNoise(efac=efac,
-                                              log10_t2equad=log10_equad)
-        ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr)
+    efeq = white_signals.MeasurementNoise(efac=efac,
+                                          log10_t2equad=log10_equad,
+                                          selection=backend)
+    ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr,
+                                        selection=backend_ng)
 
     log10_A = parameter.Uniform(-20, -11)
     gamma = parameter.Uniform(0, 7)
@@ -306,6 +300,117 @@ def ts_model_builder(target_prior_path,
                          p_dist=p_dist,
                          p_phase=p_phase,
                          scale_shift_pdists=False)  # Bjorn's toggle to fix pulsar distances
+
+        cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
+        signal_collection = s + cw
+        signal_collections += [signal_collection(psr)]
+
+    # Instantiate signal collection
+    pta = signal_base.PTA(signal_collections)
+
+    # Set white noise parameters
+    with open(noisedict_path, 'r') as fp:
+        noise_params = json.load(fp)
+    pta.set_default_params(noise_params)
+
+    return pta
+
+def mock_ts_model_builder(target_prior_path,
+                     pulsar_path,
+                     noisedict_path,
+                     pulsar_dists_path,
+                     exclude_pulsars=None,
+                     vary_fgw='narrow',
+                     mass_prior='detection'):
+    """
+    Builds a PTA object according to my usual targeted search model choices
+
+    :param target_prior_path: Path to a json file containing prior values for the target
+    :param pulsar_path: Path to a pkl containing the NANOGrav pulsars
+    :param noisedict_path: Path to a json file containing noise parameter valus
+    :param pulsar_dists_path: Path to a pkl containing a dict of pulsar distance parameter values
+    :param exclude_pulsars: A list of pulsar names to not use, default is None
+    :param vary_fgw: Options are {'constant', 'narrow', and 'full'} narrow is log uniform (1,6)*EM freq
+    :param mass_prior: Options are {'detection', 'upper_limit'} corresponding to log uniform and uniform respectively
+    """
+
+    ################
+    # Load Pulsars #
+    ################
+
+    with open(pulsar_path, 'rb') as f:
+        psrs = pickle.load(f)
+    # Exclude specified pulsars, if any
+    if exclude_pulsars is not None:
+        psrs = [psr for psr in psrs if psr.name not in exclude_pulsars]
+
+    ##########################
+    # Setup Enterprise Model #
+    ##########################
+
+    tmin = [p.toas.min() for p in psrs]
+    tmax = [p.toas.max() for p in psrs]
+    tspan = np.max(tmax) - np.min(tmin)
+    tref = max(tmax)
+
+    tm = gp_signals.MarginalizingTimingModel(use_svd=True)
+
+    # CW parameters
+    cw_params = set_cw_params(target_prior_path, mass_prior, vary_fgw, tspan)
+    cos_gwtheta = cw_params['cos_gwtheta']
+    gwphi = cw_params['gwphi']
+    log10_dist = cw_params['log10_dist']
+    log10_fgw = cw_params['log10_fgw']
+    log10_mc = cw_params['log10_mc']
+    phase0 = cw_params['phase0']
+    psi = cw_params['psi']
+    cos_inc = cw_params['cos_inc']
+
+    # White noise
+    backend = selections.Selection(selections.by_backend)
+    backend_ng = selections.Selection(selections.nanograv_backends)
+
+    efac = parameter.Constant()
+    log10_equad = parameter.Constant()
+    log10_ecorr = parameter.Constant()
+    efeq = white_signals.MeasurementNoise(efac=efac,
+                                          log10_t2equad=log10_equad)
+    ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr)
+
+    log10_A = parameter.Uniform(-20, -11)
+    gamma = parameter.Uniform(0, 7)
+
+    pl = utils.powerlaw(log10_A=log10_A, gamma=gamma)
+    rn = gp_signals.FourierBasisGP(pl, components=30, Tspan=tspan)
+
+    # Common red noise
+    log10_A_crn = parameter.Uniform(-18, -11)('crn_log10_A')
+    gamma_crn = parameter.Uniform(0, 7)('gamma_crn')
+
+    cpl = utils.powerlaw(log10_A=log10_A_crn, gamma=gamma_crn)
+
+    crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=tspan, name='crn')
+
+    s = tm + efeq + ec + rn + crn
+
+    with open(pulsar_dists_path, 'rb') as f:
+        psrdists = pickle.load(f)
+    p_phase = parameter.Uniform(0, 2 * np.pi)
+    signal_collections = []
+    # Adding individual cws so we can set pulsar distances
+    for psr in psrs:
+        cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
+                         gwphi=gwphi,
+                         log10_fgw=log10_fgw,
+                         log10_mc=log10_mc,
+                         phase0=phase0,
+                         psi=psi,
+                         cos_inc=cos_inc,
+                         log10_dist=log10_dist,
+                         tref=tref,
+                         evolve=True,
+                         psrTerm=True,
+                         p_phase=p_phase)
 
         cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
         signal_collection = s + cw

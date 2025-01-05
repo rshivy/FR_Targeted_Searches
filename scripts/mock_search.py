@@ -3,7 +3,7 @@ import os
 import json
 import numpy as np
 
-from tsutils.model_builder import ts_model_builder
+from tsutils.model_builder import mock_ts_model_builder
 from tsutils.utils import get_cw_groups
 
 import enterprise.signals.parameter as parameter
@@ -62,14 +62,13 @@ if n_samples >= 100:
 # Setup Enterprise Model #
 ##########################
 
-pta = ts_model_builder(target_prior_path=target_prior_path,
+pta = mock_ts_model_builder(target_prior_path=target_prior_path,
                        pulsar_path=psrpath,
                        noisedict_path=noisedict_path,
                        pulsar_dists_path=psrdists_path,
                        exclude_pulsars=None,
                        vary_fgw='constant',
-                       mass_prior=args.mass_prior,
-                       selection=False)
+                       mass_prior=args.mass_prior)
 
 #######################
 # PTMCMCSampler Setup #
