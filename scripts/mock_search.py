@@ -27,8 +27,8 @@ size = comm.Get_size()
 target_prior_path = 'mock_targets/mdc2_group1.json'
 psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/mdc2/group1_3b.pkl'
 
-noisedict_path = 'noise_dicts/15yr_wn_dict.json'  # I probably shouldn't do this but leaving it for now
-psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'  # Ditto
+noisedict_path = 'noise_dicts/mdc1_group1_noisedict.json'
+psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'  # This doesn't end up getting used and distances are set to 1
 
 parser = argparse.ArgumentParser()
 
