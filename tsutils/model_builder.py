@@ -393,9 +393,8 @@ def mock_ts_model_builder(target_prior_path,
 
     s = tm + efeq + ec + rn + crn
 
-    with open(pulsar_dists_path, 'rb') as f:
-        psrdists = pickle.load(f)
     p_phase = parameter.Uniform(0, 2 * np.pi)
+    p_dist = parameter.Normal(0, 1)
     signal_collections = []
     # Adding individual cws so we can set pulsar distances
     for psr in psrs:
@@ -410,7 +409,8 @@ def mock_ts_model_builder(target_prior_path,
                          tref=tref,
                          evolve=True,
                          psrTerm=True,
-                         p_phase=p_phase)
+                         p_phase=p_phase,
+                         p_dist=p_dist)
 
         cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
         signal_collection = s + cw
