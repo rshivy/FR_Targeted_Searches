@@ -367,15 +367,10 @@ def mock_ts_model_builder(target_prior_path,
     cos_inc = cw_params['cos_inc']
 
     # White noise
-    backend = selections.Selection(selections.by_backend)
-    backend_ng = selections.Selection(selections.nanograv_backends)
-
     efac = parameter.Constant()
     log10_equad = parameter.Constant()
-    log10_ecorr = parameter.Constant()
     efeq = white_signals.MeasurementNoise(efac=efac,
                                           log10_t2equad=log10_equad)
-    ec = white_signals.EcorrKernelNoise(log10_ecorr=log10_ecorr)
 
     log10_A = parameter.Uniform(-20, -11)
     gamma = parameter.Uniform(0, 7)
@@ -391,7 +386,7 @@ def mock_ts_model_builder(target_prior_path,
 
     crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=tspan, name='crn')
 
-    s = tm + efeq + ec + rn + crn
+    s = tm + efeq + rn + crn
 
     p_phase = parameter.Uniform(0, 2 * np.pi)
     p_dist = parameter.Normal(0, 1)
