@@ -27,7 +27,7 @@ size = comm.Get_size()
 target_prior_path = 'mock_targets/mdc2_group1.json'
 psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/mdc2/group1_3b.pkl'
 
-noisedict_path = 'noise_dicts/mdc1_group1_noisedict.json'
+noisedict_path = 'noise_dicts/mdc2_group1_noisedict.json'
 psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'  # This doesn't end up getting used and distances are set to 1
 
 parser = argparse.ArgumentParser()
@@ -63,12 +63,12 @@ if n_samples >= 100:
 ##########################
 
 pta = mock_ts_model_builder(target_prior_path=target_prior_path,
-                       pulsar_path=psrpath,
-                       noisedict_path=noisedict_path,
-                       pulsar_dists_path=psrdists_path,
-                       exclude_pulsars=None,
-                       vary_fgw='constant',
-                       mass_prior=args.mass_prior)
+                            pulsar_path=psrpath,
+                            noisedict_path=noisedict_path,
+                            pulsar_dists_path=psrdists_path,
+                            exclude_pulsars=None,
+                            vary_fgw='constant',
+                            mass_prior=args.mass_prior)
 
 #######################
 # PTMCMCSampler Setup #
