@@ -24,14 +24,14 @@ def log_cg1_dist(log_mpc_dist):
 def calc_strain(solarmass_mass, freq, mpc_dist):
     mass = cg1_mass(solarmass_mass)
     dist = cg1_dist(mpc_dist)
-    nom = 2 * (mass ** (5 / 3)) * np.pi * (freq ** (2 / 3))
+    nom = 2 * (mass ** (5 / 3)) * ((np.pi * freq) ** (2 / 3))
     return nom / dist
 
 
 def calc_log10_strain(log10solarmass_mass, log10freq, log10mpc_dist):
     log10mass = log_cg1_mass(log10solarmass_mass)
     log10dist = log_cg1_dist(log10mpc_dist)
-    log10strain = (5 / 3) * log10mass + (2 / 3) * log10freq - log10dist + np.log10(2 * np.pi)
+    log10strain = (5 / 3) * log10mass + (2 / 3) * log10freq - log10dist + np.log10(2) + (2/3) * np.pi
     return log10strain
 
 
