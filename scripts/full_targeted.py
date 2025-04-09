@@ -38,8 +38,11 @@ parser = argparse.ArgumentParser()
 
 parser.add_argument('-o', '--out', action='store', type=str, dest='output_suffix')
 parser.add_argument('-t', '--target', action='store', type=index_format, dest='target_index')
-parser.add_argument('-m', '--mass-prior', action='store', dest='mass_prior',
-                    choices=['upper-limit', 'detection'], required=True)
+m_or_h_prior = parser.add_mutually_exclusive_group(required=True)
+m_or_h_prior.add_argument('-m', '--mass-prior', action='store', dest='mass_prior',
+                          choices=['upper-limit', 'detection'])
+m_or_h_prior.add_argument('-s', '--strain-prior', action='store', dest='strain_prior',
+                          choices=['upper-limit', 'detection'])
 parser.add_argument('-f', '--frequency-prior', action='store', dest='frequency_prior',
                     choices=['constant', 'narrow', 'full'], default='narrow')
 parser.add_argument('-b' '--broken-powerlaw', action='store_true', dest='broken_powerlaw')
@@ -68,6 +71,10 @@ if args.mass_prior == 'detection':
     outputdir += '_det'
 elif args.mass_prior == 'upper-limit':
     outputdir += '_ul'
+elif args.strain_prior == 'detection':
+    outputdir += '_hdet'
+elif args.strain_prior == 'upper-limit':
+    outputdir += '_hul'
 
 if args.frequency_prior == 'narrow':
     outputdir += '_narrowfgw'
@@ -113,7 +120,8 @@ else:
                            pulsar_dists_path=psrdists_path,
                            exclude_pulsars=None,
                            vary_fgw=args.frequency_prior,
-                           mass_prior=args.mass_prior)
+                           mass_prior=args.mass_prior,
+                           strain_prior=args.strain_prior)
 
 #######################
 # PTMCMCSampler Setup #
@@ -148,7 +156,10 @@ sampler.addProposalToCycle(jp.draw_from_prior, 10)
 
 if args.frequency_prior != 'constant':
     sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_fgw']), 10)
-sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']), 5)
+if args.mass_prior:
+    sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_mc']), 5)
+else:
+    sampler.addProposalToCycle(jp.draw_from_par_prior(['log10_h']), 5)
 sampler.addProposalToCycle(jp.draw_from_gwb_log_uniform_distribution, 5)
 
 jpCW = dists.JumpProposalCW(pta)

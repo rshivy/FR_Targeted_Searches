@@ -82,7 +82,7 @@ def create_gw_antenna_pattern_new(pos, gwtheta, gwphi, gwpsi):
 @signal_base.function
 def cw_delay_new(toas, pos, pdist,
                  cos_gwtheta=0, gwphi=0, cos_inc=0,
-                 log10_mc=9, log10_fgw=-8, log10_dist=None, log10_h=None,
+                 log10_mc=None, log10_fgw=-8, log10_dist=None, log10_h=None,
                  phase0=0, psi=0,
                  psrTerm=False, p_dist=1, p_phase=None,
                  evolve=False, phase_approx=False, check=False,
@@ -138,7 +138,6 @@ def cw_delay_new(toas, pos, pdist,
     :return: Vector of induced residuals
     """
     # convert units to time
-    mc = 10 ** log10_mc * const.Tsun
     fgw = 10 ** log10_fgw
     gwtheta = np.arccos(cos_gwtheta)
     inc = np.arccos(cos_inc)
@@ -147,13 +146,18 @@ def cw_delay_new(toas, pos, pdist,
     else:
         p_dist = p_dist * const.kpc / const.c
 
-    if log10_h is None and log10_dist is None:
-        raise ValueError("one of log10_dist or log10_h must be non-None")
-    elif log10_h is not None and log10_dist is not None:
-        raise ValueError("only one of log10_dist or log10_h can be non-None")
+    if log10_h is None and log10_dist is None and log10_mc is None:
+        raise ValueError("two of log10_dist, log10_h, log10_mc must be non-None")
+    elif log10_h is not None and log10_dist is not None and log10_mc is not None:
+        raise ValueError("only two of log10_dist, log10_h, log10_mc can be non-None")
     elif log10_h is None:
+        mc = 10 ** log10_mc * const.Tsun
         dist = 10 ** log10_dist * const.Mpc / const.c
+    elif log10_mc is None:
+        dist = 10 ** log10_dist * const.Mpc / const.c
+        mc = 10 ** log10_h * dist / (np.pi * fgw) ** (2 / 3)
     else:
+        mc = 10 ** log10_mc * const.Tsun
         dist = 2 * mc ** (5 / 3) * (np.pi * fgw) ** (2 / 3) / 10 ** log10_h
 
     if check:

@@ -19,7 +19,7 @@ from QuickCW.PulsarDistPriors import DMDistParameter
 import matplotlib.pyplot as plt
 
 
-def set_cw_params(target_prior_path, mass_prior, freq_prior, tspan):
+def set_cw_params(target_prior_path, mass_prior, strain_prior, freq_prior, tspan):
     target_priors = load_target_priors(target_prior_path)
 
     cos_gwtheta = parameter.Constant(val=target_priors['cos_theta'])('cos_gwtheta')  # position of source
@@ -41,9 +41,20 @@ def set_cw_params(target_prior_path, mass_prior, freq_prior, tspan):
         log10_mc = parameter.Uniform(7, 11)('log10_mc')  # chirp mass of binary
     elif mass_prior == 'upper-limit':
         log10_mc = parameter.LinearExp(7, 12)('log10_mc')
-    else:
+    elif mass_prior:
         raise ValueError(f'Unknown value for mass_prior: {mass_prior}.'
                          'options are {\'detection\', \'upper-limit\'}')
+    else:
+        log10_mc = None
+    if strain_prior == 'detection':
+        log10_h = parameter.Uniform(-18, -11)('log10_h')
+    elif strain_prior == 'upper-limit':
+        log10_h = parameter.LinearExp(-18, -11)('log10_h')
+    elif strain_prior:
+        raise ValueError(f'Unknown value for strain_prior: {strain_prior}.'
+                         'options are {\'detection\', \'upper-limit\'}')
+    else:
+        log10_h = None
     phase0 = parameter.Uniform(0, 2 * np.pi)('phase0')  # gw phase
     psi = parameter.Uniform(0, np.pi)('psi')  # gw polarization
     cos_inc = parameter.Uniform(-1, 1)('cos_inc')  # inclination of binary with respect to Earth
@@ -53,6 +64,7 @@ def set_cw_params(target_prior_path, mass_prior, freq_prior, tspan):
                  'log10_dist': log10_dist,
                  'log10_fgw': log10_fgw,
                  'log10_mc': log10_mc,
+                 'log10_h': log10_h,
                  'phase0': phase0,
                  'psi': psi,
                  'cos_inc': cos_inc, }
@@ -196,7 +208,8 @@ def ts_model_builder(target_prior_path,
                      pulsar_dists_path,
                      exclude_pulsars=None,
                      vary_fgw='narrow',
-                     mass_prior='detection'):
+                     mass_prior='detection',
+                     strain_prior=None):
     """
     Builds a PTA object according to my usual targeted search model choices
 
@@ -207,6 +220,7 @@ def ts_model_builder(target_prior_path,
     :param exclude_pulsars: A list of pulsar names to not use, default is None
     :param vary_fgw: Options are {'constant', 'narrow', and 'full'} narrow is log uniform (1,6)*EM freq
     :param mass_prior: Options are {'detection', 'upper_limit'} corresponding to log uniform and uniform respectively
+    :param strain_prior: Options are {'detection', 'upper_limit'} corresponding to log uniform and uniform respectively
     """
 
     ################
@@ -231,12 +245,13 @@ def ts_model_builder(target_prior_path,
     tm = gp_signals.MarginalizingTimingModel(use_svd=True)
 
     # CW parameters
-    cw_params = set_cw_params(target_prior_path, mass_prior, vary_fgw, tspan)
+    cw_params = set_cw_params(target_prior_path, mass_prior, strain_prior, vary_fgw, tspan)
     cos_gwtheta = cw_params['cos_gwtheta']
     gwphi = cw_params['gwphi']
     log10_dist = cw_params['log10_dist']
     log10_fgw = cw_params['log10_fgw']
     log10_mc = cw_params['log10_mc']
+    log10_h = cw_params['log10_h']
     phase0 = cw_params['phase0']
     psi = cw_params['psi']
     cos_inc = cw_params['cos_inc']
