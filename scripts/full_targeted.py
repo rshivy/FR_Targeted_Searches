@@ -47,7 +47,7 @@ parser.add_argument('-f', '--frequency-prior', action='store', dest='frequency_p
                     choices=['constant', 'narrow', 'full'], default='narrow')
 parser.add_argument('-b' '--broken-powerlaw', action='store_true', dest='broken_powerlaw')
 parser.add_argument('--scratch', action='store_true', dest='scratch')
-parser.add_argument('-h', '--hd-correlation', action='store_true', dest='hd_correlation')
+parser.add_argument('-c', '--hd-correlation', action='store_true', dest='hd_correlation')
 
 args = parser.parse_args()
 
