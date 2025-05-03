@@ -8,6 +8,7 @@ import astropy.units as u
 from enterprise.signals import gp_signals, white_signals
 from enterprise.signals import parameter
 from enterprise_extensions.deterministic import CWSignal  # , cw_delay
+from enterprise_extensions import model_orfs
 from targeted_cws_ng15.new_delays_2 import cw_delay_new as cw_delay
 from enterprise.signals import selections
 from enterprise.signals import signal_base, utils
@@ -209,7 +210,8 @@ def ts_model_builder(target_prior_path,
                      exclude_pulsars=None,
                      vary_fgw='narrow',
                      mass_prior='detection',
-                     strain_prior=None):
+                     strain_prior=None,
+                     hd_correlation=False):
     """
     Builds a PTA object according to my usual targeted search model choices
 
@@ -221,6 +223,7 @@ def ts_model_builder(target_prior_path,
     :param vary_fgw: Options are {'constant', 'narrow', and 'full'} narrow is log uniform (1,6)*EM freq
     :param mass_prior: Options are {'detection', 'upper_limit'} corresponding to log uniform and uniform respectively
     :param strain_prior: Options are {'detection', 'upper_limit'} corresponding to log uniform and uniform respectively
+    :param hd_correlation: Boolean, whether to use HD correlation or not (CURN is default)
     """
 
     ################
@@ -275,15 +278,19 @@ def ts_model_builder(target_prior_path,
     pl = utils.powerlaw(log10_A=log10_A, gamma=gamma)
     rn = gp_signals.FourierBasisGP(pl, components=30, Tspan=tspan)
 
-    # Common red noise
-    log10_A_crn = parameter.Uniform(-18, -11)('crn_log10_A')
-    gamma_crn = parameter.Uniform(0, 7)('gamma_crn')
-
-    cpl = utils.powerlaw(log10_A=log10_A_crn, gamma=gamma_crn)
-
-    crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=tspan, name='crn')
-
-    s = tm + efeq + ec + rn + crn
+    # Common red noise / GWB
+    if hd_correlation:
+        log10_A_gwb = parameter.Uniform(-18, -11)('gwb_log10_A')
+        gamma_gwb = parameter.Uniform(0, 7)('gamma_gwb')
+        cpl = utils.powerlaw(log10_A=log10_A_gwb, gamma=gamma_gwb)
+        gwb = gp_signals.FourierBasisCommonGP(cpl, orf=model_orfs.hd_orf(), components=14, Tspan=tspan, name='gwb')
+        s = tm + efeq + ec + rn + gwb
+    else:
+        log10_A_crn = parameter.Uniform(-18, -11)('crn_log10_A')
+        gamma_crn = parameter.Uniform(0, 7)('gamma_crn')
+        cpl = utils.powerlaw(log10_A=log10_A_crn, gamma=gamma_crn)
+        crn = gp_signals.FourierBasisGP(cpl, components=14, Tspan=tspan, name='crn')
+        s = tm + efeq + ec + rn + crn
 
     with open(pulsar_dists_path, 'rb') as f:
         psrdists = pickle.load(f)

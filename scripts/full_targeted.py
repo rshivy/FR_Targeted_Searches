@@ -46,6 +46,8 @@ m_or_h_prior.add_argument('-s', '--strain-prior', action='store', dest='strain_p
 parser.add_argument('-f', '--frequency-prior', action='store', dest='frequency_prior',
                     choices=['constant', 'narrow', 'full'], default='narrow')
 parser.add_argument('-b' '--broken-powerlaw', action='store_true', dest='broken_powerlaw')
+parser.add_argument('--scratch', action='store_true', dest='scratch')
+parser.add_argument('-h', '--hd-correlation', action='store_true', dest='hd_correlation')
 
 args = parser.parse_args()
 
@@ -65,7 +67,10 @@ psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 # Setup Output #
 ################
 
-outputdir = 'data/chains/ng15_v1p1/' + target_name
+if args.scratch:
+    outputdir = '/vast/palmer/scratch/mingarelli/frh7/altdata/chains/ng15_v1p1/' + target_name
+else:
+    outputdir = 'data/chains/ng15_v1p1/' + target_name
 
 if args.mass_prior == 'detection':
     outputdir += '_det'
@@ -121,7 +126,8 @@ else:
                            exclude_pulsars=None,
                            vary_fgw=args.frequency_prior,
                            mass_prior=args.mass_prior,
-                           strain_prior=args.strain_prior)
+                           strain_prior=args.strain_prior,
+                           hd_correlation=args.hd_correlation)
 
 #######################
 # PTMCMCSampler Setup #
@@ -136,8 +142,12 @@ ndim = len(x0)
 cov = np.diag(np.ones(ndim) * 0.1 ** 2)
 
 # Get parameter groups
-crn_params = ['crn_log10_A', 'gamma_crn']
-groups = get_parameter_groups(pta) + get_cw_groups(pta) + [group_from_params(pta, crn_params)]
+if args.hd_correlation:
+    gwb_params = ['gwb_log10_A', 'gamma_gwb']
+    groups = get_parameter_groups(pta) + get_cw_groups(pta) + [group_from_params(pta, gwb_params)]
+else:
+    crn_params = ['crn_log10_A', 'gamma_crn']
+    groups = get_parameter_groups(pta) + get_cw_groups(pta) + [group_from_params(pta, crn_params)]
 
 # Intialize sampler
 sampler = Ptmcmc(ndim=ndim,
