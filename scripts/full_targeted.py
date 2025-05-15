@@ -48,6 +48,7 @@ parser.add_argument('-f', '--frequency-prior', action='store', dest='frequency_p
 parser.add_argument('-b' '--broken-powerlaw', action='store_true', dest='broken_powerlaw')
 parser.add_argument('--scratch', action='store_true', dest='scratch')
 parser.add_argument('-c', '--hd-correlation', action='store_true', dest='hd_correlation')
+parser.add_argument('-y', '--dataset', action='store', dest='dataset')
 
 args = parser.parse_args()
 
@@ -59,9 +60,14 @@ with open('target_priors_v2/target_index.json', 'r') as f:
     target_prior_fname = json.load(f)[args.target_index]
     target_prior_path = 'target_priors_v2/' + target_prior_fname
     target_name = target_prior_fname[:-5]
-psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
-noisedict_path = 'noise_dicts/15yr_wn_dict.json'
-psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
+if args.dataset == 15:
+    psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng15_v1p1/v1p1_de440_pint_bipm2019.pkl'
+    noisedict_path = 'noise_dicts/15yr_wn_dict.json'
+    psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
+elif args.dataset == 20:
+    psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng20_v1p1/v1p1_de440_pint_bipm2019.pkl'
+    noisedict_path = 'noise_dicts/ng20_v1p1_dmx_noise_dict.json'
+    psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 
 ################
 # Setup Output #

@@ -302,11 +302,14 @@ def ts_model_builder(target_prior_path,
         if psrdists[psr.name][2] == 'PX':
             p_dist = PXDistParameter(dist=psrdists[psr.name][0],
                                      err=psrdists[psr.name][1])
+            scale_shift = False
         elif psrdists[psr.name][2] == 'DM':
             p_dist = DMDistParameter(dist=psrdists[psr.name][0],
                                      err=psrdists[psr.name][1])
+            scale_shift = False
         else:
-            raise ValueError("Can't find if distances are PX or DM!")
+            p_dist = parameter.Normal(0, 1)
+            scale_shift = True
 
         cw_wf = cw_delay(cos_gwtheta=cos_gwtheta,
                          gwphi=gwphi,
@@ -322,7 +325,7 @@ def ts_model_builder(target_prior_path,
                          psrTerm=True,
                          p_dist=p_dist,
                          p_phase=p_phase,
-                         scale_shift_pdists=False)  # Bjorn's toggle to fix pulsar distances
+                         scale_shift_pdists=scale_shift)  # Bjorn's toggle to fix pulsar distances
 
         cw = CWSignal(cw_wf, ecc=False, psrTerm=True)
         signal_collection = s + cw
