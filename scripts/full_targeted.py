@@ -65,7 +65,7 @@ if args.dataset == '15':
     noisedict_path = 'noise_dicts/15yr_wn_dict.json'
     psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 elif args.dataset == '20':
-    psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng20_v1p1/v1p1_de440_pint_bipm2019.pkl'
+    psrpath = '/gpfs/gibbs/project/mingarelli/frh7/targeted_searches/data/ePSRs/ng20_v1p1/v1p1.pkl'
     noisedict_path = 'noise_dicts/ng20_v1p1_dmx_noise_dict.json'
     psrdists_path = 'psr_distances/pulsar_distances_15yr.pkl'
 else:
