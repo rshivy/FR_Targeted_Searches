@@ -76,9 +76,9 @@ else:
 ################
 
 if args.scratch:
-    outputdir = '/vast/palmer/scratch/mingarelli/frh7/altdata/chains/ng15_v1p1/' + target_name
+    outputdir = f'/vast/palmer/scratch/mingarelli/frh7/altdata/chains/ng{args.dataset}_v1p1/' + target_name
 else:
-    outputdir = 'data/chains/ng15_v1p1/' + target_name
+    outputdir = f'data/chains/ng{args.dataset}_v1p1/' + target_name
 
 if args.mass_prior == 'detection':
     outputdir += '_det'
