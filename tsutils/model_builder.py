@@ -299,14 +299,15 @@ def ts_model_builder(target_prior_path,
     # Adding individual cws so we can set pulsar distances
     for psr in psrs:
         # Set pulsar distance parameter
-        if psrdists[psr.name][2] == 'PX':
-            p_dist = PXDistParameter(dist=psrdists[psr.name][0],
-                                     err=psrdists[psr.name][1])
-            scale_shift = False
-        elif psrdists[psr.name][2] == 'DM':
-            p_dist = DMDistParameter(dist=psrdists[psr.name][0],
-                                     err=psrdists[psr.name][1])
-            scale_shift = False
+        if psr.name in psrdists.keys():
+            if psrdists[psr.name][2] == 'PX':
+                p_dist = PXDistParameter(dist=psrdists[psr.name][0],
+                                         err=psrdists[psr.name][1])
+                scale_shift = False
+            elif psrdists[psr.name][2] == 'DM':
+                p_dist = DMDistParameter(dist=psrdists[psr.name][0],
+                                         err=psrdists[psr.name][1])
+                scale_shift = False
         else:
             p_dist = parameter.Normal(0, 1)
             scale_shift = True
