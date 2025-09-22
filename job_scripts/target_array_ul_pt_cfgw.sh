@@ -8,11 +8,11 @@
 #SBATCH --cpus-per-task=1
 #SBATCH --ntasks=8
 #SBATCH --nodes=1
-#SBATCH --mem-per-cpu=6G
+#SBATCH --mem-per-cpu=20G
 
 module load miniconda
 module load OpenMPI
 conda activate targeted
 
 export PYTHONPATH=$(pwd):$PATH
-srun -n 8 python scripts/full_targeted.py -t $SLURM_ARRAY_TASK_ID -m upper-limit -f constant -o pt_v4
+srun -n 8 python scripts/full_targeted.py -t $SLURM_ARRAY_TASK_ID -m upper-limit -f constant -o pt_v4 --scratch -y 15
